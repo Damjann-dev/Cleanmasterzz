@@ -1106,7 +1106,265 @@
 }
 
 /* ==============================================
-   16. Toast Notifications
+   16. Service Options Summary & Edit Button
+   ============================================== */
+.cmcalc-service__options-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--cmcalc-border);
+}
+.cmcalc-service__option-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: rgba(77, 168, 218, 0.1);
+    color: var(--cmcalc-accent);
+    font-weight: 600;
+    white-space: nowrap;
+}
+.cmcalc-service__edit-options {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 4px 10px;
+    border: 1px dashed var(--cmcalc-accent);
+    border-radius: 6px;
+    background: rgba(77, 168, 218, 0.05);
+    color: var(--cmcalc-accent);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.cmcalc-service__edit-options:hover {
+    background: rgba(77, 168, 218, 0.12);
+    border-color: var(--cmcalc-accent);
+    color: var(--cmcalc-primary);
+}
+.cmcalc-service__badge--options {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: rgba(77, 168, 218, 0.1);
+    color: var(--cmcalc-accent);
+    font-weight: 700;
+}
+
+/* ==============================================
+   17. Questionnaire Popup
+   ============================================== */
+.cmcalc-questionnaire {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 999998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.cmcalc-questionnaire__overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+.cmcalc-questionnaire.is-open .cmcalc-questionnaire__overlay {
+    opacity: 1;
+}
+.cmcalc-questionnaire__panel {
+    position: relative;
+    z-index: 1;
+    background: #fff;
+    border-radius: 16px;
+    width: 480px;
+    max-width: 92vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+}
+.cmcalc-questionnaire.is-open .cmcalc-questionnaire__panel {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+.cmcalc-questionnaire__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--cmcalc-border);
+}
+.cmcalc-questionnaire__title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cmcalc-text);
+}
+.cmcalc-questionnaire__close {
+    background: var(--cmcalc-bg-light);
+    border: 1px solid var(--cmcalc-border);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--cmcalc-text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.cmcalc-questionnaire__close:hover {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+.cmcalc-questionnaire__body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+.cmcalc-questionnaire__footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid var(--cmcalc-border);
+    background: var(--cmcalc-bg-light);
+    border-radius: 0 0 16px 16px;
+}
+
+/* Questionnaire items */
+.cmcalc-q-item {
+    margin-bottom: 18px;
+}
+.cmcalc-q-item:last-child {
+    margin-bottom: 0;
+}
+.cmcalc-q-item__label {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cmcalc-text);
+    margin-bottom: 8px;
+}
+.cmcalc-q-item__checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1.5px solid var(--cmcalc-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    color: var(--cmcalc-text);
+}
+.cmcalc-q-item__checkbox:hover {
+    border-color: var(--cmcalc-accent);
+    background: rgba(77, 168, 218, 0.04);
+}
+.cmcalc-q-item__checkbox input {
+    display: none;
+}
+.cmcalc-q-item__checkmark {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--cmcalc-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.cmcalc-q-item__checkbox input:checked ~ .cmcalc-q-item__checkmark {
+    background: var(--cmcalc-primary);
+    border-color: var(--cmcalc-primary);
+}
+.cmcalc-q-item__checkbox input:checked ~ .cmcalc-q-item__checkmark::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) translate(-1px, -1px);
+}
+.cmcalc-q-item__checkbox input:checked ~ span:last-child {
+    font-weight: 600;
+}
+.cmcalc-q-item__select-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.cmcalc-q-item__radio {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1.5px solid var(--cmcalc-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    color: var(--cmcalc-text);
+}
+.cmcalc-q-item__radio:hover {
+    border-color: var(--cmcalc-accent);
+    background: rgba(77, 168, 218, 0.04);
+}
+.cmcalc-q-item__radio input {
+    display: none;
+}
+.cmcalc-q-item__radiomark {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--cmcalc-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.cmcalc-q-item__radio input:checked ~ .cmcalc-q-item__radiomark {
+    border-color: var(--cmcalc-primary);
+}
+.cmcalc-q-item__radio input:checked ~ .cmcalc-q-item__radiomark::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--cmcalc-primary);
+}
+.cmcalc-q-item__radio input:checked ~ span:last-child {
+    font-weight: 600;
+}
+
+@media (max-width: 480px) {
+    .cmcalc-questionnaire__panel {
+        width: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+    .cmcalc-questionnaire__footer {
+        border-radius: 0;
+    }
+}
+
+/* ==============================================
+   18. Toast Notifications
    ============================================== */
 .cmcalc-toast {
     position: fixed;

@@ -224,6 +224,25 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         </div>
     </div>
 
+    <!-- Questionnaire Popup -->
+    <div class="cmcalc-questionnaire" id="cmcalcQuestionnaire" style="display:none;">
+        <div class="cmcalc-questionnaire__overlay"></div>
+        <div class="cmcalc-questionnaire__panel">
+            <div class="cmcalc-questionnaire__header">
+                <h3 class="cmcalc-questionnaire__title" id="cmcalcQTitle"></h3>
+                <button type="button" class="cmcalc-questionnaire__close" aria-label="Sluiten">&times;</button>
+            </div>
+            <div class="cmcalc-questionnaire__body" id="cmcalcQBody"></div>
+            <div class="cmcalc-questionnaire__footer">
+                <button type="button" class="cmcalc-btn cmcalc-btn--outline cmcalc-questionnaire__cancel">Annuleren</button>
+                <button type="button" class="cmcalc-btn cmcalc-btn--primary cmcalc-questionnaire__confirm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Toevoegen
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Templates -->
     <template id="cmcalcServiceCardTpl">
         <div class="cmcalc-service" data-service-id="" data-index="">

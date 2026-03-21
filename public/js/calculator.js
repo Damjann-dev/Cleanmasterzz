@@ -38,6 +38,8 @@
     var currentNearestArea   = null;
     var debounceTimer        = null;
     var isZakelijk           = false;
+    var subOptionSelections  = {};  // { serviceIndex: [{checked, value, label}, ...] }
+    var pendingQServiceIndex = -1;  // Service index awaiting questionnaire confirmation
 
     // ──────────────────────────────────────────────
     // Unit labels
@@ -275,16 +277,22 @@
                 }
             }
 
-            // Sub-options
+            // Sub-options: show "Opties bewerken" link (popup-based, not inline)
             if (service.sub_options && service.sub_options.length > 0 && !service.requires_quote && !isZakelijk) {
-                var subHtml = buildSubOptionsHtml(service, index);
-                if (subHtml) {
-                    var subWrap = document.createElement('div');
-                    subWrap.className = 'cmcalc-service__sub-options';
-                    subWrap.style.display = 'none';
-                    subWrap.innerHTML = subHtml;
-                    card.appendChild(subWrap);
-                }
+                var editBtn = document.createElement('button');
+                editBtn.type = 'button';
+                editBtn.className = 'cmcalc-service__edit-options';
+                editBtn.style.display = 'none'; // shown when selected
+                editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Opties bewerken';
+                var bodyEl = card.querySelector('.cmcalc-service__body');
+                if (bodyEl) bodyEl.appendChild(editBtn);
+
+                // Add a badge showing sub-option count
+                var optBadge = document.createElement('span');
+                optBadge.className = 'cmcalc-service__badge cmcalc-service__badge--options';
+                optBadge.textContent = service.sub_options.length + ' opties';
+                var topEl = card.querySelector('.cmcalc-service__top');
+                if (topEl) topEl.appendChild(optBadge);
             }
 
             // Minimum price note
@@ -456,45 +464,194 @@
         if (!service) return;
 
         var isChecked = checkbox.checked;
+
+        // If checking ON and service has sub-options → show questionnaire popup
+        if (isChecked && !service.requires_quote && !isZakelijk &&
+            service.sub_options && service.sub_options.length > 0) {
+            // Don't select yet — wait for questionnaire confirmation
+            openQuestionnaire(index);
+            return;
+        }
+
+        applyServiceSelection(card, index, isChecked);
+    }
+
+    /** Apply the visual selection state to a service card */
+    function applyServiceSelection(card, index, isChecked) {
         var qtyWrap   = card.querySelector('.cmcalc-service__qty');
-        var subWrap   = card.querySelector('.cmcalc-service__sub-options');
         var lineTotal = card.querySelector('.cmcalc-service__line-total');
+        var editBtn   = card.querySelector('.cmcalc-service__edit-options');
 
         if (isChecked) {
             card.classList.add('is-selected');
             if (qtyWrap) qtyWrap.style.display = '';
-            if (subWrap) subWrap.style.display = '';
             if (lineTotal) lineTotal.style.display = '';
+            // Show "Opties bewerken" link if has sub-options
+            if (editBtn) editBtn.style.display = '';
+            // Show summary of selected options
+            updateSubOptionsSummary(card, index);
         } else {
             card.classList.remove('is-selected');
             if (qtyWrap) qtyWrap.style.display = 'none';
-            if (subWrap) subWrap.style.display = 'none';
             if (lineTotal) lineTotal.style.display = 'none';
+            if (editBtn) editBtn.style.display = 'none';
+            // Clear sub-option selections
+            delete subOptionSelections[index];
+            // Hide summary
+            var summary = card.querySelector('.cmcalc-service__options-summary');
+            if (summary) summary.style.display = 'none';
         }
 
-        // Update totals
         updateRunningTotal();
     }
 
-    /** Get selected sub-options for a service by index */
+    /** Show a summary of selected sub-options on the service card */
+    function updateSubOptionsSummary(card, index) {
+        var service = allServices[index];
+        var selections = subOptionSelections[index];
+        if (!service || !service.sub_options || !selections) return;
+
+        var summary = card.querySelector('.cmcalc-service__options-summary');
+        if (!summary) {
+            summary = document.createElement('div');
+            summary.className = 'cmcalc-service__options-summary';
+            var body = card.querySelector('.cmcalc-service__body');
+            if (body) body.appendChild(summary);
+        }
+
+        var parts = [];
+        service.sub_options.forEach(function(opt, i) {
+            var sel = selections[i];
+            if (!sel) return;
+            if (opt.type === 'checkbox' && sel.checked) {
+                parts.push(opt.label);
+            } else if (opt.type === 'select' && sel.label) {
+                parts.push(opt.label + ': ' + sel.label);
+            }
+        });
+
+        if (parts.length > 0) {
+            summary.innerHTML = parts.map(function(p) {
+                return '<span class="cmcalc-service__option-tag">' + p + '</span>';
+            }).join('');
+            summary.style.display = '';
+        } else {
+            summary.style.display = 'none';
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // Questionnaire Popup
+    // ──────────────────────────────────────────────
+
+    function openQuestionnaire(serviceIndex) {
+        var service = allServices[serviceIndex];
+        if (!service || !service.sub_options) return;
+
+        pendingQServiceIndex = serviceIndex;
+
+        var modal = document.getElementById('cmcalcQuestionnaire');
+        var title = document.getElementById('cmcalcQTitle');
+        var body  = document.getElementById('cmcalcQBody');
+
+        if (title) title.textContent = service.title;
+
+        // Build questionnaire form
+        var html = '';
+        service.sub_options.forEach(function(opt, i) {
+            html += '<div class="cmcalc-q-item">';
+            html += '<label class="cmcalc-q-item__label">' + (opt.label || '') + '</label>';
+
+            if (opt.type === 'checkbox') {
+                var surchargeText = opt.surcharge > 0 ? ' (+' + formatPrice(opt.surcharge) + ')' : '';
+                // Pre-check if previously selected
+                var wasChecked = subOptionSelections[serviceIndex] && subOptionSelections[serviceIndex][i] && subOptionSelections[serviceIndex][i].checked;
+                html += '<label class="cmcalc-q-item__checkbox">' +
+                    '<input type="checkbox" data-q-index="' + i + '"' + (wasChecked ? ' checked' : '') + '>' +
+                    '<span class="cmcalc-q-item__checkmark"></span>' +
+                    '<span>Ja' + surchargeText + '</span>' +
+                '</label>';
+            } else if (opt.type === 'select' && opt.options) {
+                var prevValue = subOptionSelections[serviceIndex] && subOptionSelections[serviceIndex][i] ? subOptionSelections[serviceIndex][i].value : '0';
+                html += '<div class="cmcalc-q-item__select-wrap">';
+                opt.options.forEach(function(o, j) {
+                    var surcharge = opt.surcharges && opt.surcharges[j] > 0 ? ' (+' + formatPrice(opt.surcharges[j]) + ')' : '';
+                    var isSelected = (String(j) === String(prevValue));
+                    html += '<label class="cmcalc-q-item__radio">' +
+                        '<input type="radio" name="cmcalc_q_' + i + '" value="' + j + '"' + (isSelected ? ' checked' : '') + ' data-q-index="' + i + '">' +
+                        '<span class="cmcalc-q-item__radiomark"></span>' +
+                        '<span>' + o + surcharge + '</span>' +
+                    '</label>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+        });
+
+        if (body) body.innerHTML = html;
+        if (modal) modal.style.display = '';
+
+        // Animate in
+        requestAnimationFrame(function() {
+            if (modal) modal.classList.add('is-open');
+        });
+    }
+
+    function closeQuestionnaire(confirmed) {
+        var modal = document.getElementById('cmcalcQuestionnaire');
+        if (modal) {
+            modal.classList.remove('is-open');
+            setTimeout(function() { modal.style.display = 'none'; }, 250);
+        }
+
+        var index = pendingQServiceIndex;
+        pendingQServiceIndex = -1;
+        if (index < 0) return;
+
+        var card = calculator.querySelector('.cmcalc-service[data-index="' + index + '"]');
+        var checkbox = card ? card.querySelector('.cmcalc-service__checkbox') : null;
+
+        if (confirmed) {
+            // Collect answers from the questionnaire
+            var service = allServices[index];
+            var body = document.getElementById('cmcalcQBody');
+            var selections = [];
+
+            if (service && service.sub_options && body) {
+                service.sub_options.forEach(function(opt, i) {
+                    if (opt.type === 'checkbox') {
+                        var cb = body.querySelector('[data-q-index="' + i + '"]');
+                        selections.push({
+                            checked: cb ? cb.checked : false,
+                            label: opt.label
+                        });
+                    } else if (opt.type === 'select') {
+                        var radio = body.querySelector('input[name="cmcalc_q_' + i + '"]:checked');
+                        var val = radio ? radio.value : '0';
+                        selections.push({
+                            value: val,
+                            label: opt.options ? opt.options[parseInt(val, 10)] : ''
+                        });
+                    }
+                });
+            }
+
+            subOptionSelections[index] = selections;
+            if (checkbox) checkbox.checked = true;
+            if (card) applyServiceSelection(card, index, true);
+        } else {
+            // Cancelled — uncheck the service
+            if (checkbox) checkbox.checked = false;
+            if (card) applyServiceSelection(card, index, false);
+        }
+    }
+
+    /** Get selected sub-options for a service by index (reads from subOptionSelections map) */
     function getSubOptionsForService(index) {
         var service = allServices[index];
         if (!service || !service.sub_options || service.sub_options.length === 0) return null;
-
-        var result = [];
-        service.sub_options.forEach(function(opt, i) {
-            var el = calculator.querySelector('[data-sub-index="' + index + '-' + i + '"]');
-            if (!el) {
-                result.push(null);
-                return;
-            }
-            if (opt.type === 'checkbox') {
-                result.push({ checked: el.checked, label: opt.label });
-            } else if (opt.type === 'select') {
-                result.push({ value: el.value, label: opt.options ? opt.options[parseInt(el.value, 10)] : '' });
-            }
-        });
-        return result;
+        return subOptionSelections[index] || null;
     }
 
     /** Collect all selected services with their quantities and sub-options */
@@ -700,6 +857,32 @@
         // Restart button
         if (target.closest('#cmcalcRestart')) {
             restartCalculator();
+            return;
+        }
+
+        // Questionnaire confirm
+        if (target.closest('.cmcalc-questionnaire__confirm')) {
+            closeQuestionnaire(true);
+            return;
+        }
+
+        // Questionnaire cancel / close / overlay
+        if (target.closest('.cmcalc-questionnaire__cancel') || target.closest('.cmcalc-questionnaire__close')) {
+            closeQuestionnaire(false);
+            return;
+        }
+        if (target.classList.contains('cmcalc-questionnaire__overlay')) {
+            closeQuestionnaire(false);
+            return;
+        }
+
+        // Edit options button (re-open questionnaire for already-selected service)
+        if (target.closest('.cmcalc-service__edit-options')) {
+            var editCard = target.closest('.cmcalc-service');
+            if (editCard) {
+                var editIndex = parseInt(editCard.getAttribute('data-index'), 10);
+                openQuestionnaire(editIndex);
+            }
             return;
         }
 
