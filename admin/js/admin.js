@@ -883,12 +883,27 @@
         currentVolumeDienstId = parseInt($btn.data('id'));
         var tiersJson = $btn.data('tiers') || '[]';
         var tiers = typeof tiersJson === 'string' ? JSON.parse(tiersJson) : tiersJson;
+        var basePrice = parseFloat($btn.closest('tr').find('.cmcalc-inline-edit[data-field="base_price"]').val()) || 0;
+
+        // Store per-bedrijf pricing data on the button
+        var bedrijfPricingJson = $btn.data('bedrijf-pricing') || '{}';
+        var bedrijfPricing = typeof bedrijfPricingJson === 'string' ? JSON.parse(bedrijfPricingJson) : bedrijfPricingJson;
+        $btn.data('_bedrijf_pricing_obj', bedrijfPricing);
+        $btn.data('_default_tiers', tiers);
+        $btn.data('_default_base_price', basePrice);
+
+        // Reset bedrijf selector
+        var $bedrijfSelect = $('#cmcalcTiersBedrijfSelect');
+        if ($bedrijfSelect.length) $bedrijfSelect.val('0');
+
+        // Set base price
+        $('#cmcalcTiersBasePrice').val(basePrice);
 
         var $list = $('#cmcalcVolumeTiersList');
         $list.empty();
 
         if (tiers.length === 0) {
-            addVolumeTierRow($list, 1, 10, parseFloat($btn.closest('tr').find('.cmcalc-inline-edit[data-field="base_price"]').val()) || 0);
+            addVolumeTierRow($list, 1, 10, basePrice);
         } else {
             tiers.forEach(function(tier) {
                 addVolumeTierRow($list, tier.min, tier.max, tier.price);
@@ -896,6 +911,41 @@
         }
 
         $('#cmcalcVolumeTiersModal').show();
+    });
+
+    // When bedrijf selector changes, load that bedrijf's pricing
+    $(document).on('change', '#cmcalcTiersBedrijfSelect', function() {
+        var selectedBedrijf = $(this).val();
+        var $triggerBtn = $('tr[data-id="' + currentVolumeDienstId + '"] .cmcalc-volume-tiers-btn');
+        var bedrijfPricing = $triggerBtn.data('_bedrijf_pricing_obj') || {};
+        var $list = $('#cmcalcVolumeTiersList');
+        $list.empty();
+
+        if (selectedBedrijf > 0 && bedrijfPricing[selectedBedrijf]) {
+            var override = bedrijfPricing[selectedBedrijf];
+            var overrideTiers = override.volume_tiers || [];
+            var overrideBase = override.base_price !== undefined ? override.base_price : ($triggerBtn.data('_default_base_price') || 0);
+            $('#cmcalcTiersBasePrice').val(overrideBase);
+            if (overrideTiers.length === 0) {
+                addVolumeTierRow($list, 1, 10, overrideBase);
+            } else {
+                overrideTiers.forEach(function(tier) {
+                    addVolumeTierRow($list, tier.min, tier.max, tier.price);
+                });
+            }
+        } else {
+            // Default pricing
+            var defaultTiers = $triggerBtn.data('_default_tiers') || [];
+            var defaultBase = $triggerBtn.data('_default_base_price') || 0;
+            $('#cmcalcTiersBasePrice').val(defaultBase);
+            if (defaultTiers.length === 0) {
+                addVolumeTierRow($list, 1, 10, defaultBase);
+            } else {
+                defaultTiers.forEach(function(tier) {
+                    addVolumeTierRow($list, tier.min, tier.max, tier.price);
+                });
+            }
+        }
     });
 
     function addVolumeTierRow($list, min, max, price) {
@@ -935,18 +985,32 @@
         var $btn = $(this);
         $btn.prop('disabled', true).text('Opslaan...');
 
+        var bedrijfId = $('#cmcalcTiersBedrijfSelect').val() || '0';
+        var basePrice = parseFloat($('#cmcalcTiersBasePrice').val()) || 0;
+
         $.post(ajaxUrl, {
             action: 'cmcalc_save_volume_tiers',
             nonce: nonce,
             post_id: currentVolumeDienstId,
-            tiers: JSON.stringify(tiers)
+            tiers: JSON.stringify(tiers),
+            bedrijf_id: bedrijfId,
+            base_price: basePrice
         }).done(function(res) {
             if (res.success) {
-                // Update the button's data and count
                 var $triggerBtn = $('tr[data-id="' + currentVolumeDienstId + '"] .cmcalc-volume-tiers-btn');
-                $triggerBtn.data('tiers', JSON.stringify(res.data.tiers));
+                if (bedrijfId === '0' || bedrijfId === 0) {
+                    // Update default tiers
+                    $triggerBtn.data('tiers', JSON.stringify(res.data.tiers));
+                    $triggerBtn.data('_default_tiers', res.data.tiers);
+                    $triggerBtn.data('_default_base_price', basePrice);
+                } else {
+                    // Update bedrijf-specific pricing in local cache
+                    var pricing = $triggerBtn.data('_bedrijf_pricing_obj') || {};
+                    pricing[bedrijfId] = { base_price: basePrice, volume_tiers: res.data.tiers };
+                    $triggerBtn.data('_bedrijf_pricing_obj', pricing);
+                }
                 $triggerBtn.find('.cmcalc-badge').text(res.data.tiers.length);
-                showToast('Staffelprijzen opgeslagen');
+                showToast('Staffelprijzen opgeslagen' + (bedrijfId > 0 ? ' (bedrijf-specifiek)' : ''));
                 $('#cmcalcVolumeTiersModal').hide();
             } else {
                 showToast(res.data || 'Opslaan mislukt', 'error');

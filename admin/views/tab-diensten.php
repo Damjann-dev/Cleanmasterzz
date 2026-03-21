@@ -101,7 +101,8 @@ $unit_options = array(
                     <button type="button" class="button cmcalc-btn-sub-options" data-id="<?php echo esc_attr( $dienst->ID ); ?>" data-sub='<?php echo esc_attr( $sub_options ?: '[]' ); ?>'>
                         Beheer (<?php echo $sub_count; ?>)
                     </button>
-                    <button type="button" class="button cmcalc-volume-tiers-btn" data-id="<?php echo esc_attr( $dienst->ID ); ?>" data-tiers='<?php echo esc_attr( $volume_tiers ?: '[]' ); ?>'>
+                    <?php $bedrijf_pricing = get_post_meta( $dienst->ID, '_cm_bedrijf_pricing', true ) ?: '{}'; ?>
+                    <button type="button" class="button cmcalc-volume-tiers-btn" data-id="<?php echo esc_attr( $dienst->ID ); ?>" data-tiers='<?php echo esc_attr( $volume_tiers ?: '[]' ); ?>' data-bedrijf-pricing='<?php echo esc_attr( $bedrijf_pricing ); ?>'>
                         Staffelprijzen <span class="cmcalc-badge"><?php echo $tier_count; ?></span>
                     </button>
                 </td>
@@ -171,6 +172,23 @@ $unit_options = array(
         </div>
         <div class="cmcalc-modal-body">
             <p style="color:#6c757d;font-size:13px;margin:0 0 16px;">Stel kortingen in op basis van het aantal. Klanten krijgen automatisch de juiste prijs.</p>
+            <?php
+            $bedrijven_for_modal = get_posts( array( 'post_type' => 'cm_bedrijf', 'posts_per_page' => -1, 'post_status' => 'publish' ) );
+            if ( count( $bedrijven_for_modal ) > 1 ) : ?>
+            <div class="cmcalc-modal-bedrijf-selector" style="margin-bottom:16px;">
+                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px;">Prijzen voor:</label>
+                <select id="cmcalcTiersBedrijfSelect" style="width:100%;padding:8px 10px;border:1.5px solid var(--cmcalc-border);border-radius:8px;font-size:13px;">
+                    <option value="0">Standaard (alle bedrijven)</option>
+                    <?php foreach ( $bedrijven_for_modal as $b ) : ?>
+                    <option value="<?php echo esc_attr( $b->ID ); ?>"><?php echo esc_html( $b->post_title ); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php endif; ?>
+            <div class="cmcalc-modal-base-price" style="margin-bottom:16px;">
+                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px;">Basisprijs per eenheid:</label>
+                <input type="number" id="cmcalcTiersBasePrice" step="0.01" min="0" style="width:160px;padding:8px 10px;border:1.5px solid var(--cmcalc-border);border-radius:8px;font-size:13px;" placeholder="0.00">
+            </div>
             <div id="cmcalcVolumeTiersList"></div>
             <button type="button" class="button" id="cmcalcAddVolumeTier" style="margin-top: 12px;">
                 <span class="dashicons dashicons-plus-alt2"></span> Staffel toevoegen

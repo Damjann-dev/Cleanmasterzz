@@ -149,6 +149,26 @@ class CMCalc_REST_API {
                 }
                 $result = $filtered;
 
+                // Apply per-bedrijf pricing overrides
+                foreach ( $result as &$svc ) {
+                    if ( $svc['id'] > 0 ) {
+                        $pricing_raw = get_post_meta( $svc['id'], '_cm_bedrijf_pricing', true );
+                        if ( ! empty( $pricing_raw ) ) {
+                            $pricing = json_decode( $pricing_raw, true );
+                            if ( is_array( $pricing ) && isset( $pricing[ $bedrijf_id ] ) ) {
+                                $override = $pricing[ $bedrijf_id ];
+                                if ( isset( $override['base_price'] ) ) {
+                                    $svc['base_price'] = floatval( $override['base_price'] );
+                                }
+                                if ( isset( $override['volume_tiers'] ) && is_array( $override['volume_tiers'] ) ) {
+                                    $svc['volume_tiers'] = $override['volume_tiers'];
+                                }
+                            }
+                        }
+                    }
+                }
+                unset( $svc );
+
                 // Filter travel service too
                 if ( $travel_service && $travel_service['id'] > 0 ) {
                     $t_ids = json_decode( get_post_meta( $travel_service['id'], '_cm_bedrijf_ids', true ), true );

@@ -252,8 +252,31 @@ class CMCalc_Admin {
         // Sort by min ascending
         usort( $clean, function( $a, $b ) { return $a['min'] - $b['min']; } );
 
-        update_post_meta( $post_id, '_cm_volume_tiers', wp_json_encode( $clean ) );
-        wp_send_json_success( array( 'tiers' => $clean ) );
+        $bedrijf_id = intval( $_POST['bedrijf_id'] ?? 0 );
+        $base_price = isset( $_POST['base_price'] ) ? floatval( $_POST['base_price'] ) : null;
+
+        if ( $bedrijf_id > 0 ) {
+            // Per-bedrijf pricing override
+            $pricing = json_decode( get_post_meta( $post_id, '_cm_bedrijf_pricing', true ) ?: '{}', true );
+            if ( ! is_array( $pricing ) ) $pricing = array();
+
+            $pricing[ $bedrijf_id ] = array(
+                'volume_tiers' => $clean,
+            );
+            if ( $base_price !== null ) {
+                $pricing[ $bedrijf_id ]['base_price'] = $base_price;
+            }
+
+            update_post_meta( $post_id, '_cm_bedrijf_pricing', wp_json_encode( $pricing ) );
+        } else {
+            // Default pricing (all companies)
+            update_post_meta( $post_id, '_cm_volume_tiers', wp_json_encode( $clean ) );
+            if ( $base_price !== null ) {
+                update_post_meta( $post_id, '_cm_base_price', $base_price );
+            }
+        }
+
+        wp_send_json_success( array( 'tiers' => $clean, 'bedrijf_id' => $bedrijf_id ) );
     }
 
     // ─── AJAX: Werkgebieden ───
