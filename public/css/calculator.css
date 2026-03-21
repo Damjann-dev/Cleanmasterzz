@@ -1,0 +1,1267 @@
+/* ==============================================
+   CleanMasterzz Calculator - Premium UI
+   ============================================== */
+
+/* --- Variables --- */
+.cmcalc-calculator {
+    --cmcalc-primary: #1B2A4A;
+    --cmcalc-secondary: #28a745;
+    --cmcalc-accent: #4DA8DA;
+    --cmcalc-text: #2d3436;
+    --cmcalc-text-light: #6c757d;
+    --cmcalc-bg: #ffffff;
+    --cmcalc-bg-light: #f8f9fa;
+    --cmcalc-border: #e9ecef;
+    --cmcalc-radius: 16px;
+    --cmcalc-btn-radius: 8px;
+    --cmcalc-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --cmcalc-font-size: 15px;
+    --cmcalc-title-size: 22px;
+    --cmcalc-max-width: 1100px;
+    --cmcalc-padding: 24px;
+    --cmcalc-gap: 16px;
+}
+
+/* --- Keyframes --- */
+@keyframes cmcalcPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+}
+@keyframes cmcalcSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes cmcalcSpin {
+    to { transform: rotate(360deg); }
+}
+@keyframes cmcalcCheckmark {
+    from { stroke-dashoffset: 48; }
+    to   { stroke-dashoffset: 0; }
+}
+@keyframes cmcalcCountUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes cmcalcShine {
+    from { left: -100%; }
+    to   { left: 200%; }
+}
+@keyframes cmcalcPopIn {
+    0% { opacity: 0; transform: scale(0.85); }
+    70% { transform: scale(1.03); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* --- Reset / Base --- */
+.cmcalc-calculator {
+    max-width: var(--cmcalc-max-width);
+    margin: 0 auto;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+    font-size: var(--cmcalc-font-size);
+    color: var(--cmcalc-text);
+    line-height: 1.5;
+    background: var(--cmcalc-bg);
+    border-radius: var(--cmcalc-radius);
+    box-shadow: var(--cmcalc-shadow);
+    overflow: hidden;
+}
+.cmcalc-calculator *,
+.cmcalc-calculator *::before,
+.cmcalc-calculator *::after {
+    box-sizing: border-box;
+}
+
+/* ==============================================
+   1. Progress Bar - Premium
+   ============================================== */
+.cmcalc-progress {
+    position: relative;
+    padding: 32px 40px 24px;
+    background: linear-gradient(180deg, var(--cmcalc-bg-light), var(--cmcalc-bg));
+}
+.cmcalc-progress__track {
+    position: absolute;
+    top: 48px;
+    left: 80px;
+    right: 80px;
+    height: 4px;
+    background: var(--cmcalc-border);
+    border-radius: 2px;
+    z-index: 0;
+    overflow: hidden;
+}
+.cmcalc-progress__fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--cmcalc-primary), var(--cmcalc-accent));
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+.cmcalc-progress__fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: cmcalcShine 2s ease-in-out infinite;
+}
+.cmcalc-progress__dots {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+}
+.cmcalc-progress__dot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    outline: none;
+    transition: transform 0.2s ease;
+}
+.cmcalc-progress__dot:hover {
+    transform: translateY(-1px);
+}
+.cmcalc-progress__dot .dot-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--cmcalc-bg);
+    border: 2.5px solid var(--cmcalc-border);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--cmcalc-text-light);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.cmcalc-progress__dot .dot-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cmcalc-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.3s ease;
+}
+.cmcalc-progress__dot.is-active .dot-num {
+    background: var(--cmcalc-primary);
+    border-color: var(--cmcalc-primary);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(27, 42, 74, 0.35);
+    transform: scale(1.1);
+}
+.cmcalc-progress__dot.is-completed .dot-num {
+    background: var(--cmcalc-secondary);
+    border-color: var(--cmcalc-secondary);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(40, 167, 69, 0.3);
+}
+.cmcalc-progress__dot.is-active .dot-label {
+    color: var(--cmcalc-primary);
+    font-weight: 700;
+}
+.cmcalc-progress__dot.is-completed .dot-label {
+    color: var(--cmcalc-secondary);
+}
+
+/* ==============================================
+   2. Steps
+   ============================================== */
+.cmcalc-step {
+    display: none;
+    padding: 0 var(--cmcalc-padding) var(--cmcalc-padding);
+    animation: cmcalcSlideIn 0.35s ease;
+}
+.cmcalc-step.is-active {
+    display: block;
+}
+.cmcalc-step__head {
+    text-align: center;
+    margin-bottom: var(--cmcalc-gap);
+    padding-bottom: var(--cmcalc-gap);
+    border-bottom: 1px solid var(--cmcalc-border);
+}
+.cmcalc-step__title {
+    font-size: var(--cmcalc-title-size);
+    font-weight: 800;
+    color: var(--cmcalc-primary);
+    margin: 0 0 6px;
+    letter-spacing: -0.3px;
+}
+.cmcalc-step__subtitle {
+    font-size: 14px;
+    color: var(--cmcalc-text-light);
+    margin: 0;
+}
+.cmcalc-step__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: calc(var(--cmcalc-gap) * 1.5);
+    flex-wrap: wrap;
+}
+.cmcalc-step__actions .cmcalc-disclaimer {
+    flex: 1 1 100%;
+}
+
+/* ==============================================
+   2b. Customer Toggle (Particulier / Zakelijk)
+   ============================================== */
+.cmcalc-customer-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: var(--cmcalc-gap);
+    padding: 10px 16px;
+    background: var(--cmcalc-bg-light);
+    border-radius: 10px;
+    border: 1px solid var(--cmcalc-border);
+}
+.cmcalc-customer-toggle__label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cmcalc-text-light);
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+.cmcalc-customer-toggle__label--active {
+    color: var(--cmcalc-primary);
+}
+.cmcalc-customer-toggle__switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+    cursor: pointer;
+}
+.cmcalc-customer-toggle__switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+.cmcalc-customer-toggle__slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--cmcalc-border);
+    border-radius: 26px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.cmcalc-customer-toggle__slider::before {
+    content: '';
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.cmcalc-customer-toggle__switch input:checked + .cmcalc-customer-toggle__slider {
+    background: var(--cmcalc-primary);
+}
+.cmcalc-customer-toggle__switch input:checked + .cmcalc-customer-toggle__slider::before {
+    transform: translateX(22px);
+}
+
+/* ==============================================
+   3. Service List
+   ============================================== */
+.cmcalc-service-list {
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.cmcalc-service-list::-webkit-scrollbar {
+    width: 5px;
+}
+.cmcalc-service-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.cmcalc-service-list::-webkit-scrollbar-thumb {
+    background: var(--cmcalc-border);
+    border-radius: 3px;
+}
+
+/* Service loading spinner */
+.cmcalc-service-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 40px 20px;
+    color: var(--cmcalc-text-light);
+    font-size: 14px;
+}
+.cmcalc-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--cmcalc-border);
+    border-top-color: var(--cmcalc-primary);
+    border-radius: 50%;
+    animation: cmcalcSpin 0.8s linear infinite;
+}
+
+/* ==============================================
+   6. Service Card - Premium
+   ============================================== */
+.cmcalc-service {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    background: var(--cmcalc-bg);
+    border: 1.5px solid var(--cmcalc-border);
+    border-radius: 12px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    flex-wrap: wrap;
+    cursor: pointer;
+}
+.cmcalc-service:hover {
+    border-color: #c8cfd6;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transform: translateY(-1px);
+}
+
+/* Selected state */
+.cmcalc-service.is-selected {
+    background: linear-gradient(135deg, rgba(27, 42, 74, 0.03), rgba(77, 168, 218, 0.03));
+    border-color: var(--cmcalc-primary);
+    box-shadow: 0 4px 16px rgba(27, 42, 74, 0.1), inset 0 0 0 1px rgba(27, 42, 74, 0.05);
+}
+
+/* -- Checkbox -- */
+.cmcalc-service__check {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-top: 2px;
+}
+.cmcalc-service__checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.cmcalc-service__tick {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--cmcalc-border);
+    border-radius: 6px;
+    background: var(--cmcalc-bg);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.cmcalc-service__tick svg {
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cmcalc-service__checkbox:checked + .cmcalc-service__tick {
+    background: var(--cmcalc-primary);
+    border-color: var(--cmcalc-primary);
+    box-shadow: 0 2px 8px rgba(27, 42, 74, 0.25);
+}
+.cmcalc-service__checkbox:checked + .cmcalc-service__tick svg {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+}
+.cmcalc-service__checkbox:focus-visible + .cmcalc-service__tick {
+    box-shadow: 0 0 0 3px rgba(27, 42, 74, 0.2);
+}
+
+/* -- Body -- */
+.cmcalc-service__body {
+    flex: 1;
+    min-width: 0;
+}
+.cmcalc-service__top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.cmcalc-service__name {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--cmcalc-text);
+}
+.cmcalc-service__badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.cmcalc-service__badge--offerte {
+    background: linear-gradient(135deg, rgba(77, 168, 218, 0.12), rgba(77, 168, 218, 0.06));
+    color: var(--cmcalc-accent);
+    border: 1px solid rgba(77, 168, 218, 0.2);
+}
+.cmcalc-service__discount-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.12), rgba(40, 167, 69, 0.06));
+    color: var(--cmcalc-secondary);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+.cmcalc-service__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--cmcalc-text-light);
+}
+.cmcalc-service__price {
+    color: var(--cmcalc-primary);
+    font-weight: 700;
+    font-size: 14px;
+}
+.cmcalc-service__unit {
+    color: var(--cmcalc-text-light);
+}
+.cmcalc-service__min {
+    color: var(--cmcalc-text-light);
+    font-size: 12px;
+}
+.cmcalc-service__min::before {
+    content: "\00B7 ";
+}
+.cmcalc-service__tiers {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--cmcalc-text-light);
+    padding: 10px 12px;
+    background: linear-gradient(135deg, var(--cmcalc-bg-light), rgba(77, 168, 218, 0.04));
+    border-radius: 8px;
+    border: 1px solid rgba(77, 168, 218, 0.1);
+    width: 100%;
+}
+.cmcalc-tier-grid {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.cmcalc-tier-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--cmcalc-bg);
+    border: 1px solid var(--cmcalc-border);
+    transition: all 0.2s ease;
+    min-width: 70px;
+}
+.cmcalc-tier-item.is-used {
+    border-color: var(--cmcalc-secondary);
+    background: rgba(40, 167, 69, 0.05);
+}
+.cmcalc-tier-range {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--cmcalc-text-light);
+    letter-spacing: 0.3px;
+}
+.cmcalc-tier-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cmcalc-primary);
+}
+.cmcalc-tier-used {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--cmcalc-secondary);
+}
+.cmcalc-tier-savings {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--cmcalc-secondary);
+    background: rgba(40, 167, 69, 0.1);
+    padding: 1px 5px;
+    border-radius: 4px;
+}
+.cmcalc-tier-breakdown {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--cmcalc-text);
+    font-weight: 600;
+    padding: 5px 8px;
+    background: rgba(27, 42, 74, 0.03);
+    border-radius: 5px;
+}
+
+/* -- Quantity Controls -- */
+.cmcalc-service__qty {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    background: var(--cmcalc-bg-light);
+    border-radius: 10px;
+    padding: 3px;
+    border: 1px solid var(--cmcalc-border);
+}
+.cmcalc-service__qty-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: none;
+    background: var(--cmcalc-bg);
+    color: var(--cmcalc-text);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+    line-height: 1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.cmcalc-service__qty-btn:hover {
+    background: var(--cmcalc-primary);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(27, 42, 74, 0.2);
+}
+.cmcalc-service__qty-btn:active {
+    transform: scale(0.92);
+}
+.cmcalc-service__qty-input {
+    width: 48px;
+    text-align: center;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 2px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cmcalc-primary);
+    background: transparent;
+    -moz-appearance: textfield;
+}
+.cmcalc-service__qty-input::-webkit-inner-spin-button,
+.cmcalc-service__qty-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* -- Line Total -- */
+.cmcalc-service__line-total {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--cmcalc-primary);
+    white-space: nowrap;
+    margin-left: auto;
+    align-self: center;
+    animation: cmcalcCountUp 0.3s ease;
+}
+
+/* -- Sub Options -- */
+.cmcalc-service__sub-options {
+    width: 100%;
+    padding: 10px 0 0 38px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.cmcalc-service__sub-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--cmcalc-text);
+    cursor: pointer;
+}
+.cmcalc-service__sub-input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--cmcalc-primary);
+}
+.cmcalc-service__sub-surcharge {
+    color: var(--cmcalc-accent);
+    font-weight: 600;
+    font-size: 12px;
+}
+.cmcalc-service__sub-select {
+    padding: 4px 8px;
+    border: 1px solid var(--cmcalc-border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--cmcalc-text);
+    background: var(--cmcalc-bg);
+}
+.cmcalc-service__sub-label {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--cmcalc-text-light);
+}
+
+/* ==============================================
+   7. Running Total Bar - Premium
+   ============================================== */
+.cmcalc-running-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    margin-top: var(--cmcalc-gap);
+    background: linear-gradient(135deg, var(--cmcalc-primary), #2a3f6a);
+    color: #fff;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(27, 42, 74, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+.cmcalc-running-total::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 120px;
+    height: 100%;
+    background: linear-gradient(135deg, transparent, rgba(255,255,255,0.06));
+    border-radius: 0 12px 12px 0;
+}
+.cmcalc-running-total strong {
+    font-size: 22px;
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+}
+
+/* ==============================================
+   7b. Section Labels (Step 2)
+   ============================================== */
+.cmcalc-section-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cmcalc-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin: 0 0 10px;
+    padding: 0;
+}
+.cmcalc-section-label svg {
+    opacity: 0.6;
+}
+
+/* ==============================================
+   8. Overview (Step 2) - Premium
+   ============================================== */
+.cmcalc-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 24px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1.5px solid var(--cmcalc-border);
+    background: var(--cmcalc-bg);
+}
+.cmcalc-overview__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    gap: 16px;
+    border-bottom: 1px solid var(--cmcalc-border);
+    transition: background 0.2s ease;
+    animation: cmcalcCountUp 0.35s ease backwards;
+}
+.cmcalc-overview__row:nth-child(1) { animation-delay: 0s; }
+.cmcalc-overview__row:nth-child(2) { animation-delay: 0.05s; }
+.cmcalc-overview__row:nth-child(3) { animation-delay: 0.1s; }
+.cmcalc-overview__row:nth-child(4) { animation-delay: 0.15s; }
+.cmcalc-overview__row:nth-child(5) { animation-delay: 0.2s; }
+.cmcalc-overview__row:last-child {
+    border-bottom: none;
+}
+.cmcalc-overview__row:hover {
+    background: var(--cmcalc-bg-light);
+}
+.cmcalc-overview__item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.cmcalc-overview__item-name {
+    display: block;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--cmcalc-text);
+}
+.cmcalc-overview__item-detail {
+    display: block;
+    font-size: 13px;
+    color: var(--cmcalc-text-light);
+}
+.cmcalc-overview__item-sub {
+    font-size: 12px;
+    color: var(--cmcalc-text-light);
+    opacity: 0.8;
+}
+.cmcalc-overview__item-price {
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--cmcalc-primary);
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+}
+.cmcalc-overview__row.cmcalc-overview__item--quote .cmcalc-overview__item-price {
+    color: var(--cmcalc-accent);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 14px;
+}
+.cmcalc-overview__quote-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    margin-top: 12px;
+    background: linear-gradient(135deg, rgba(77, 168, 218, 0.06), rgba(77, 168, 218, 0.02));
+    border: 1px solid rgba(77, 168, 218, 0.15);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--cmcalc-accent);
+    font-weight: 500;
+}
+
+/* ==============================================
+   9. Location Card - Premium
+   ============================================== */
+.cmcalc-location-card {
+    background: var(--cmcalc-bg);
+    border: 1.5px solid var(--cmcalc-border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+}
+.cmcalc-location-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 24px;
+    right: 24px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--cmcalc-accent), var(--cmcalc-primary));
+    border-radius: 0 0 3px 3px;
+}
+.cmcalc-location-card__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cmcalc-primary);
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cmcalc-location-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+}
+.cmcalc-distance-result {
+    margin-top: 20px;
+    padding: 16px 18px;
+    border-top: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: linear-gradient(135deg, var(--cmcalc-bg-light), rgba(77, 168, 218, 0.04));
+    border-radius: 10px;
+    border: 1px solid var(--cmcalc-border);
+    overflow: hidden;
+}
+.cmcalc-distance-result__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: var(--cmcalc-text-light);
+    line-height: 1.4;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.cmcalc-distance-result__row:last-child {
+    border-bottom: none;
+}
+.cmcalc-distance-result__row span {
+    flex-shrink: 0;
+    font-weight: 500;
+}
+.cmcalc-distance-result__row strong {
+    color: var(--cmcalc-text);
+    text-align: right;
+    font-weight: 700;
+}
+
+/* ==============================================
+   10. Totals Card - Premium Receipt Style
+   ============================================== */
+.cmcalc-totals-card {
+    background: var(--cmcalc-bg);
+    border: 1.5px solid var(--cmcalc-border);
+    border-radius: 14px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+    position: relative;
+}
+.cmcalc-totals-card__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: var(--cmcalc-text-light);
+    padding: 14px 22px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: background 0.2s ease;
+}
+.cmcalc-totals-card__row:hover {
+    background: var(--cmcalc-bg-light);
+}
+.cmcalc-totals-card__row span {
+    font-weight: 500;
+}
+.cmcalc-totals-card__row strong {
+    color: var(--cmcalc-text);
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.cmcalc-totals-card__row--total {
+    border-top: 2px solid var(--cmcalc-primary);
+    border-bottom: none;
+    padding: 18px 22px;
+    margin-top: 0;
+    font-weight: 700;
+    color: var(--cmcalc-primary);
+    font-size: 16px;
+    background: linear-gradient(135deg, rgba(27, 42, 74, 0.03), rgba(27, 42, 74, 0.01));
+}
+.cmcalc-totals-card__row--total span {
+    font-weight: 700;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.cmcalc-totals-card__row--total strong {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--cmcalc-primary);
+    letter-spacing: -0.5px;
+}
+
+/* ==============================================
+   11. Form Fields - Premium
+   ============================================== */
+.cmcalc-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.cmcalc-field__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cmcalc-text);
+}
+.cmcalc-field__input,
+.cmcalc-field__textarea {
+    width: 100%;
+    padding: 11px 14px;
+    font-size: var(--cmcalc-font-size);
+    font-family: inherit;
+    color: var(--cmcalc-text);
+    background: var(--cmcalc-bg);
+    border: 1.5px solid var(--cmcalc-border);
+    border-radius: var(--cmcalc-btn-radius);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+.cmcalc-field__input:hover,
+.cmcalc-field__textarea:hover {
+    border-color: #c8cfd6;
+}
+.cmcalc-field__input:focus,
+.cmcalc-field__textarea:focus {
+    border-color: var(--cmcalc-primary);
+    box-shadow: 0 0 0 3px rgba(27, 42, 74, 0.08);
+}
+.cmcalc-field__input::placeholder,
+.cmcalc-field__textarea::placeholder {
+    color: #b8bfc6;
+}
+.cmcalc-field__textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+.cmcalc-field__input.is-error,
+.cmcalc-field__textarea.is-error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+/* ==============================================
+   12. Booking Form (Step 3) - Premium
+   ============================================== */
+.cmcalc-booking-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.cmcalc-booking-form__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.cmcalc-field--full {
+    width: 100%;
+}
+.cmcalc-terms {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--cmcalc-text-light);
+    cursor: pointer;
+    padding: 12px 16px;
+    background: var(--cmcalc-bg-light);
+    border-radius: 10px;
+    border: 1px solid var(--cmcalc-border);
+    transition: all 0.2s ease;
+}
+.cmcalc-terms:hover {
+    border-color: var(--cmcalc-primary);
+    background: rgba(27, 42, 74, 0.02);
+}
+.cmcalc-terms.is-error {
+    border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.04);
+}
+.cmcalc-terms input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    accent-color: var(--cmcalc-primary);
+}
+.cmcalc-terms a {
+    color: var(--cmcalc-accent);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(77, 168, 218, 0.3);
+    transition: border-color 0.2s ease;
+}
+.cmcalc-terms a:hover {
+    color: var(--cmcalc-primary);
+    border-bottom-color: var(--cmcalc-primary);
+}
+
+/* ==============================================
+   13. Success State - Premium
+   ============================================== */
+.cmcalc-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 60px 40px;
+    gap: 16px;
+}
+.cmcalc-success__icon {
+    animation: cmcalcPopIn 0.5s ease;
+}
+.cmcalc-success__icon svg {
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: cmcalcCheckmark 0.6s ease 0.3s forwards;
+}
+.cmcalc-success__title {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--cmcalc-primary);
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+.cmcalc-success__text {
+    font-size: 15px;
+    color: var(--cmcalc-text-light);
+    max-width: 420px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ==============================================
+   14. Buttons - Premium
+   ============================================== */
+.cmcalc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 26px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    border: 2px solid transparent;
+    border-radius: var(--cmcalc-btn-radius);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    line-height: 1.2;
+    position: relative;
+    overflow: hidden;
+}
+.cmcalc-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+.cmcalc-btn--primary {
+    background: linear-gradient(135deg, var(--cmcalc-primary), #2a3f6a);
+    color: #fff;
+    border-color: var(--cmcalc-primary);
+    box-shadow: 0 4px 14px rgba(27, 42, 74, 0.25);
+}
+.cmcalc-btn--primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #152238, var(--cmcalc-primary));
+    border-color: #152238;
+    box-shadow: 0 6px 20px rgba(27, 42, 74, 0.35);
+    transform: translateY(-1px);
+}
+.cmcalc-btn--primary:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px rgba(27, 42, 74, 0.2);
+}
+.cmcalc-btn--outline {
+    background: transparent;
+    color: var(--cmcalc-primary);
+    border-color: var(--cmcalc-border);
+}
+.cmcalc-btn--outline:hover:not(:disabled) {
+    background: var(--cmcalc-bg-light);
+    border-color: var(--cmcalc-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+
+/* ==============================================
+   15. Disclaimer
+   ============================================== */
+.cmcalc-disclaimer {
+    font-size: 12px;
+    color: var(--cmcalc-text-light);
+    line-height: 1.5;
+    margin: 0;
+    padding: 12px 16px;
+    background: var(--cmcalc-bg-light);
+    border-radius: 8px;
+    border-left: 3px solid var(--cmcalc-accent);
+}
+
+/* ==============================================
+   16. Toast Notifications
+   ============================================== */
+.cmcalc-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--cmcalc-font);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1);
+    opacity: 0;
+    transform: translateY(16px) scale(0.95);
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 380px;
+    pointer-events: auto;
+}
+.cmcalc-toast.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+.cmcalc-toast--error {
+    background: #fff;
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+.cmcalc-toast--success {
+    background: #fff;
+    color: var(--cmcalc-secondary, #28a745);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+.cmcalc-toast--info {
+    background: #fff;
+    color: var(--cmcalc-primary, #1B2A4A);
+    border: 1px solid rgba(27, 42, 74, 0.2);
+}
+.cmcalc-toast svg {
+    flex-shrink: 0;
+}
+@media (max-width: 480px) {
+    .cmcalc-toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        max-width: none;
+    }
+}
+
+/* ==============================================
+   17. Responsive
+   ============================================== */
+@media (max-width: 768px) {
+    .cmcalc-calculator {
+        border-radius: 12px;
+    }
+    .cmcalc-progress {
+        padding: 24px 20px 16px;
+    }
+    .cmcalc-progress__track {
+        left: 40px;
+        right: 40px;
+    }
+    .cmcalc-progress__dot .dot-label {
+        font-size: 10px;
+    }
+    .cmcalc-step {
+        padding: 0 20px 28px;
+    }
+    .cmcalc-step__title {
+        font-size: 18px;
+    }
+    .cmcalc-step__head {
+        padding-bottom: 12px;
+    }
+
+    /* Location fields stack */
+    .cmcalc-location-fields {
+        grid-template-columns: 1fr;
+    }
+
+    /* Booking form single column */
+    .cmcalc-booking-form__grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Actions stack */
+    .cmcalc-step__actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .cmcalc-step__actions .cmcalc-btn {
+        justify-content: center;
+    }
+
+    /* Overview */
+    .cmcalc-overview__row {
+        padding: 14px 16px;
+    }
+    .cmcalc-overview__item-price {
+        font-size: 14px;
+    }
+
+    /* Totals */
+    .cmcalc-totals-card__row {
+        padding: 12px 16px;
+    }
+    .cmcalc-totals-card__row--total {
+        padding: 16px;
+    }
+    .cmcalc-totals-card__row--total strong {
+        font-size: 18px;
+    }
+
+    /* Success */
+    .cmcalc-success {
+        padding: 40px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cmcalc-progress {
+        padding: 20px 16px 12px;
+    }
+    .cmcalc-progress__track {
+        left: 30px;
+        right: 30px;
+    }
+    .cmcalc-step {
+        padding: 0 16px 24px;
+    }
+    .cmcalc-service {
+        padding: 12px;
+        gap: 10px;
+    }
+    .cmcalc-service__qty-input {
+        width: 44px;
+    }
+    .cmcalc-running-total {
+        padding: 12px 16px;
+    }
+    .cmcalc-running-total strong {
+        font-size: 17px;
+    }
+    .cmcalc-location-card {
+        padding: 16px;
+    }
+    .cmcalc-location-card::before {
+        left: 16px;
+        right: 16px;
+    }
+    .cmcalc-totals-card__row--total strong {
+        font-size: 17px;
+    }
+}

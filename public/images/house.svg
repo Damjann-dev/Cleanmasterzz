@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <style>
+    .house-zone { cursor: pointer; transition: opacity 0.2s, filter 0.2s; }
+    .house-zone:hover { opacity: 0.85; }
+  </style>
+
+  <!-- ========== SKY BACKGROUND (not clickable) ========== -->
+  <rect x="0" y="0" width="800" height="500" fill="#E8F4FD"/>
+
+  <!-- ========== TREES (not clickable, decorative) ========== -->
+  <!-- Left tree -->
+  <rect x="88" y="260" width="14" height="110" fill="#6D4C2A" stroke="#333" stroke-width="1"/>
+  <ellipse cx="95" cy="230" rx="45" ry="60" fill="#4A8C2A" stroke="#333" stroke-width="1"/>
+  <ellipse cx="75" cy="250" rx="30" ry="40" fill="#5A9A35" stroke="#333" stroke-width="1"/>
+  <ellipse cx="115" cy="245" rx="32" ry="42" fill="#509030" stroke="#333" stroke-width="1"/>
+
+  <!-- Right tree -->
+  <rect x="693" y="265" width="14" height="105" fill="#6D4C2A" stroke="#333" stroke-width="1"/>
+  <ellipse cx="700" cy="235" rx="42" ry="55" fill="#4A8C2A" stroke="#333" stroke-width="1"/>
+  <ellipse cx="680" cy="252" rx="28" ry="38" fill="#5A9A35" stroke="#333" stroke-width="1"/>
+  <ellipse cx="718" cy="248" rx="30" ry="40" fill="#509030" stroke="#333" stroke-width="1"/>
+
+  <!-- ========== ZONE: ROOF ========== -->
+  <g id="house-roof" class="house-zone" data-zone="house-roof">
+    <!-- Main pitched roof -->
+    <polygon points="150,170 400,80 620,170" fill="#3D4248" stroke="#333" stroke-width="1.5"/>
+    <!-- Horizontal tile lines -->
+    <line x1="185" y1="155" x2="590" y2="155" stroke="#555" stroke-width="0.8"/>
+    <line x1="210" y1="140" x2="565" y2="140" stroke="#555" stroke-width="0.8"/>
+    <line x1="235" y1="125" x2="540" y2="125" stroke="#555" stroke-width="0.8"/>
+    <line x1="260" y1="110" x2="515" y2="110" stroke="#555" stroke-width="0.8"/>
+    <line x1="290" y1="95" x2="490" y2="95" stroke="#555" stroke-width="0.8"/>
+    <!-- Garage roof extension -->
+    <polygon points="530,200 620,170 660,200" fill="#3D4248" stroke="#333" stroke-width="1.5"/>
+  </g>
+
+  <!-- ========== ZONE: SOLAR PANELS ========== -->
+  <g id="house-solar" class="house-zone" data-zone="house-solar">
+    <!-- 3x2 grid of solar panels on right side of roof -->
+    <!-- Row 1 (top) -->
+    <rect x="460" y="105" width="40" height="25" rx="1" fill="#1B3A5C" stroke="#0F2840" stroke-width="1"/>
+    <rect x="504" y="105" width="40" height="25" rx="1" fill="#1B3A5C" stroke="#0F2840" stroke-width="1"/>
+    <rect x="548" y="105" width="40" height="25" rx="1" fill="#1B3A5C" stroke="#0F2840" stroke-width="1"/>
+    <!-- Row 2 (bottom) -->
+    <rect x="460" y="134" width="40" height="25" rx="1" fill="#1B3A5C" stroke="#0F2840" stroke-width="1"/>
+    <rect x="504" y="134" width="40" height="25" rx="1" fill="#1B3A5C" stroke="#0F2840" stroke-width="1"/>
+    <rect x="548" y="134" width="40" height="25" rx="1" fill="#1B3A5C" stroke="#0F2840" stroke-width="1"/>
+    <!-- Panel grid lines -->
+    <line x1="480" y1="105" x2="480" y2="130" stroke="#0F2840" stroke-width="0.5"/>
+    <line x1="460" y1="117" x2="500" y2="117" stroke="#0F2840" stroke-width="0.5"/>
+    <line x1="524" y1="105" x2="524" y2="130" stroke="#0F2840" stroke-width="0.5"/>
+    <line x1="504" y1="117" x2="544" y2="117" stroke="#0F2840" stroke-width="0.5"/>
+    <line x1="568" y1="105" x2="568" y2="130" stroke="#0F2840" stroke-width="0.5"/>
+    <line x1="548" y1="117" x2="588" y2="117" stroke="#0F2840" stroke-width="0.5"/>
+    <line x1="480" y1="134" x2="480" y2="159" stroke="#0F2840" stroke-width="0.5"/>
+    <line x1="460" y1="146" x2="500" y2="146" stroke="#0F2840" stroke-width="0.5"/>
+    <line x1="524" y1="134" x2="524" y2="159" stroke="#0F2840" stroke-width="0.5"/>
+    <line x1="504" y1="146" x2="544" y2="146" stroke="#0F2840" stroke-width="0.5"/>
+    <line x1="568" y1="134" x2="568" y2="159" stroke="#0F2840" stroke-width="0.5"/>
+    <line x1="548" y1="146" x2="588" y2="146" stroke="#0F2840" stroke-width="0.5"/>
+  </g>
+
+  <!-- ========== ZONE: DORMER ========== -->
+  <g id="house-dormer" class="house-zone" data-zone="house-dormer">
+    <!-- Dormer front wall -->
+    <rect x="340" y="120" width="80" height="50" fill="#E8E0D8" stroke="#333" stroke-width="1.5"/>
+    <!-- Dormer triangular roof -->
+    <polygon points="335,120 380,95 425,120" fill="#3D4248" stroke="#333" stroke-width="1.5"/>
+  </g>
+
+  <!-- ========== ZONE: FACADE ========== -->
+  <g id="house-facade" class="house-zone" data-zone="house-facade">
+    <!-- Main house wall -->
+    <rect x="170" y="170" width="440" height="200" fill="#E8E0D8" stroke="#333" stroke-width="1.5"/>
+    <!-- Garage wall (right side, slightly lower roofline) -->
+    <rect x="530" y="200" width="130" height="170" fill="#E8E0D8" stroke="#333" stroke-width="1.5"/>
+  </g>
+
+  <!-- ========== ZONE: WINDOWS ========== -->
+  <g id="house-windows" class="house-zone" data-zone="house-windows">
+    <!-- Dormer window -->
+    <rect x="358" y="130" width="44" height="35" fill="#A8D8EA" stroke="#333" stroke-width="1.2"/>
+    <line x1="380" y1="130" x2="380" y2="165" stroke="#FFF" stroke-width="1.5"/>
+    <line x1="358" y1="148" x2="402" y2="148" stroke="#FFF" stroke-width="1.5"/>
+
+    <!-- First floor windows (3) -->
+    <rect x="210" y="190" width="60" height="50" fill="#A8D8EA" stroke="#333" stroke-width="1.2"/>
+    <line x1="240" y1="190" x2="240" y2="240" stroke="#FFF" stroke-width="1.5"/>
+    <line x1="210" y1="215" x2="270" y2="215" stroke="#FFF" stroke-width="1.5"/>
+
+    <rect x="355" y="190" width="60" height="50" fill="#A8D8EA" stroke="#333" stroke-width="1.2"/>
+    <line x1="385" y1="190" x2="385" y2="240" stroke="#FFF" stroke-width="1.5"/>
+    <line x1="355" y1="215" x2="415" y2="215" stroke="#FFF" stroke-width="1.5"/>
+
+    <rect x="490" y="190" width="60" height="50" fill="#A8D8EA" stroke="#333" stroke-width="1.2"/>
+    <line x1="520" y1="190" x2="520" y2="240" stroke="#FFF" stroke-width="1.5"/>
+    <line x1="490" y1="215" x2="550" y2="215" stroke="#FFF" stroke-width="1.5"/>
+
+    <!-- Ground floor windows (2, larger) -->
+    <rect x="195" y="280" width="80" height="70" fill="#A8D8EA" stroke="#333" stroke-width="1.2"/>
+    <line x1="235" y1="280" x2="235" y2="350" stroke="#FFF" stroke-width="1.5"/>
+    <line x1="195" y1="315" x2="275" y2="315" stroke="#FFF" stroke-width="1.5"/>
+
+    <rect x="440" y="280" width="80" height="70" fill="#A8D8EA" stroke="#333" stroke-width="1.2"/>
+    <line x1="480" y1="280" x2="480" y2="350" stroke="#FFF" stroke-width="1.5"/>
+    <line x1="440" y1="315" x2="520" y2="315" stroke="#FFF" stroke-width="1.5"/>
+  </g>
+
+  <!-- ========== DOOR (not clickable, decorative) ========== -->
+  <rect x="350" y="290" width="50" height="80" fill="#1B2A4A" stroke="#333" stroke-width="1.5"/>
+  <!-- Door handle -->
+  <circle cx="390" cy="335" r="3" fill="#B8A070"/>
+  <!-- Porch overhang -->
+  <rect x="340" y="280" width="70" height="6" fill="#3D4248" stroke="#333" stroke-width="1"/>
+  <!-- Porch overhang supports -->
+  <line x1="345" y1="286" x2="345" y2="290" stroke="#333" stroke-width="1.2"/>
+  <line x1="405" y1="286" x2="405" y2="290" stroke="#333" stroke-width="1.2"/>
+
+  <!-- ========== ZONE: GARAGE ========== -->
+  <g id="house-garage" class="house-zone" data-zone="house-garage">
+    <!-- Garage door -->
+    <rect x="545" y="260" width="100" height="110" fill="#C8B896" stroke="#333" stroke-width="1.5"/>
+    <!-- Garage door horizontal sections -->
+    <line x1="545" y1="282" x2="645" y2="282" stroke="#A89870" stroke-width="1"/>
+    <line x1="545" y1="304" x2="645" y2="304" stroke="#A89870" stroke-width="1"/>
+    <line x1="545" y1="326" x2="645" y2="326" stroke="#A89870" stroke-width="1"/>
+    <line x1="545" y1="348" x2="645" y2="348" stroke="#A89870" stroke-width="1"/>
+    <!-- Garage floor -->
+    <rect x="540" y="370" width="115" height="25" fill="#C0B090" stroke="#333" stroke-width="1"/>
+  </g>
+
+  <!-- ========== ZONE: TERRACE ========== -->
+  <g id="house-terrace" class="house-zone" data-zone="house-terrace">
+    <!-- Wooden deck -->
+    <rect x="130" y="360" width="70" height="35" fill="#C4956A" stroke="#333" stroke-width="1.2"/>
+    <!-- Deck plank lines -->
+    <line x1="130" y1="367" x2="200" y2="367" stroke="#A87850" stroke-width="0.8"/>
+    <line x1="130" y1="374" x2="200" y2="374" stroke="#A87850" stroke-width="0.8"/>
+    <line x1="130" y1="381" x2="200" y2="381" stroke="#A87850" stroke-width="0.8"/>
+    <line x1="130" y1="388" x2="200" y2="388" stroke="#A87850" stroke-width="0.8"/>
+    <!-- Deck step -->
+    <rect x="145" y="395" width="55" height="10" fill="#B8855E" stroke="#333" stroke-width="1"/>
+  </g>
+
+  <!-- ========== GRASS (not clickable) ========== -->
+  <rect x="0" y="395" width="800" height="105" fill="#7CB342"/>
+
+  <!-- ========== ZONE: DRIVEWAY ========== -->
+  <g id="house-driveway" class="house-zone" data-zone="house-driveway">
+    <!-- Main driveway area -->
+    <polygon points="300,400 500,400 520,500 280,500" fill="#D4C5A9" stroke="#333" stroke-width="1"/>
+    <!-- Path to front door -->
+    <rect x="345" y="370" width="60" height="30" fill="#D4C5A9" stroke="#333" stroke-width="1"/>
+    <!-- Driveway to garage -->
+    <polygon points="500,400 660,395 680,500 520,500" fill="#D4C5A9" stroke="#333" stroke-width="1"/>
+    <!-- Stone pattern lines on driveway -->
+    <line x1="310" y1="420" x2="510" y2="420" stroke="#BFB090" stroke-width="0.7"/>
+    <line x1="305" y1="440" x2="520" y2="440" stroke="#BFB090" stroke-width="0.7"/>
+    <line x1="298" y1="460" x2="525" y2="460" stroke="#BFB090" stroke-width="0.7"/>
+    <line x1="290" y1="480" x2="530" y2="480" stroke="#BFB090" stroke-width="0.7"/>
+    <!-- Vertical stone lines -->
+    <line x1="350" y1="400" x2="340" y2="500" stroke="#BFB090" stroke-width="0.7"/>
+    <line x1="400" y1="400" x2="400" y2="500" stroke="#BFB090" stroke-width="0.7"/>
+    <line x1="450" y1="400" x2="460" y2="500" stroke="#BFB090" stroke-width="0.7"/>
+    <!-- Garage driveway stones -->
+    <line x1="540" y1="420" x2="665" y2="418" stroke="#BFB090" stroke-width="0.7"/>
+    <line x1="545" y1="440" x2="670" y2="438" stroke="#BFB090" stroke-width="0.7"/>
+    <line x1="550" y1="460" x2="675" y2="458" stroke="#BFB090" stroke-width="0.7"/>
+    <line x1="555" y1="480" x2="680" y2="478" stroke="#BFB090" stroke-width="0.7"/>
+    <line x1="560" y1="400" x2="570" y2="500" stroke="#BFB090" stroke-width="0.7"/>
+    <line x1="620" y1="398" x2="640" y2="500" stroke="#BFB090" stroke-width="0.7"/>
+  </g>
+
+  <!-- ========== HEDGES (not clickable, decorative) ========== -->
+  <!-- Front hedge left -->
+  <rect x="130" y="388" width="160" height="14" rx="7" fill="#5A8A28" stroke="#333" stroke-width="0.8"/>
+  <!-- Front hedge right -->
+  <rect x="440" y="388" width="90" height="14" rx="7" fill="#5A8A28" stroke="#333" stroke-width="0.8"/>
+  <!-- Small hedge bumps for texture -->
+  <ellipse cx="160" cy="388" rx="15" ry="8" fill="#5E9030"/>
+  <ellipse cx="195" cy="388" rx="14" ry="7" fill="#5E9030"/>
+  <ellipse cx="230" cy="388" rx="13" ry="8" fill="#5E9030"/>
+  <ellipse cx="265" cy="388" rx="14" ry="7" fill="#5E9030"/>
+  <ellipse cx="460" cy="388" rx="13" ry="7" fill="#5E9030"/>
+  <ellipse cx="495" cy="388" rx="14" ry="8" fill="#5E9030"/>
+  <ellipse cx="520" cy="388" rx="12" ry="7" fill="#5E9030"/>
+
+</svg>
