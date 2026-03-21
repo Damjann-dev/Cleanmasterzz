@@ -95,27 +95,78 @@ $travel_price = $travel ? get_post_meta( $travel->ID, '_cm_base_price', true ) :
         <span class="cmcalc-save-status" id="cmcalcTextsStatus"></span>
     </div>
 
-    <div class="cmcalc-settings-card">
+    <div class="cmcalc-settings-card" style="grid-column: 1 / -1;">
         <div class="cmcalc-settings-card-icon" style="background: linear-gradient(135deg, #0d9488, #06b6d4);">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </div>
         <h3>E-mail instellingen</h3>
-        <p class="description">Stel het e-mailadres en onderwerp in voor notificaties.</p>
+        <p class="description">Configureer admin- en klante-mails. Klanten ontvangen automatisch een HTML-bevestiging en statusupdates.</p>
 
-        <div class="cmcalc-settings-field">
-            <label for="cmcalcAdminEmail">Admin notificatie e-mail</label>
-            <input type="email" id="cmcalcAdminEmail" value="<?php echo esc_attr( $settings['admin_email'] ?? '' ); ?>" class="regular-text">
+        <div class="cmcalc-settings-fields-grid">
+            <div class="cmcalc-settings-field">
+                <label for="cmcalcAdminEmail">Admin notificatie e-mail</label>
+                <input type="email" id="cmcalcAdminEmail" value="<?php echo esc_attr( $settings['admin_email'] ?? '' ); ?>" class="regular-text">
+            </div>
+
+            <div class="cmcalc-settings-field">
+                <label for="cmcalcEmailSubject">E-mail onderwerp</label>
+                <input type="text" id="cmcalcEmailSubject" value="<?php echo esc_attr( $settings['email_subject'] ?? '' ); ?>" class="regular-text">
+            </div>
+
+            <div class="cmcalc-settings-field">
+                <label for="cmcalcEmailLogoUrl">Logo URL (voor in e-mails)</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" id="cmcalcEmailLogoUrl" value="<?php echo esc_attr( $settings['email_logo_url'] ?? '' ); ?>" class="regular-text" placeholder="https://...">
+                    <button type="button" class="button" id="cmcalcEmailLogoBtn" style="white-space:nowrap;">Kies afbeelding</button>
+                </div>
+            </div>
+
+            <div class="cmcalc-settings-field">
+                <label for="cmcalcEmailFooter">Footer tekst</label>
+                <input type="text" id="cmcalcEmailFooter" value="<?php echo esc_attr( $settings['email_footer_text'] ?? '' ); ?>" class="regular-text" placeholder="Heeft u vragen? Neem gerust contact met ons op.">
+            </div>
         </div>
 
-        <div class="cmcalc-settings-field">
-            <label for="cmcalcEmailSubject">E-mail onderwerp</label>
-            <input type="text" id="cmcalcEmailSubject" value="<?php echo esc_attr( $settings['email_subject'] ?? '' ); ?>" class="regular-text">
+        <div style="display:flex;gap:24px;margin-top:16px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+                <div class="cmcalc-toggle" style="margin:0;">
+                    <input type="checkbox" id="cmcalcEmailCustomerEnabled" <?php checked( $settings['email_customer_enabled'] ?? '1', '1' ); ?>>
+                    <span class="cmcalc-toggle-slider"></span>
+                </div>
+                Klantbevestiging e-mail
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+                <div class="cmcalc-toggle" style="margin:0;">
+                    <input type="checkbox" id="cmcalcEmailStatusEnabled" <?php checked( $settings['email_status_enabled'] ?? '1', '1' ); ?>>
+                    <span class="cmcalc-toggle-slider"></span>
+                </div>
+                Statusupdate e-mails
+            </label>
         </div>
 
-        <button type="button" class="button cmcalc-btn-primary" id="cmcalcSaveEmail" style="margin-top: 18px;">
-            Opslaan
-        </button>
-        <span class="cmcalc-save-status" id="cmcalcEmailStatus"></span>
+        <div style="display:flex;gap:10px;margin-top:18px;align-items:center;">
+            <button type="button" class="button cmcalc-btn-primary" id="cmcalcSaveEmail">
+                Opslaan
+            </button>
+            <button type="button" class="button" id="cmcalcPreviewEmail">
+                <span class="dashicons dashicons-visibility" style="margin-top:3px;"></span> Preview e-mail
+            </button>
+            <span class="cmcalc-save-status" id="cmcalcEmailStatus"></span>
+        </div>
+    </div>
+
+    <!-- Email Preview Modal -->
+    <div id="cmcalcEmailPreviewModal" class="cmcalc-modal" style="display:none;">
+        <div class="cmcalc-modal-overlay"></div>
+        <div class="cmcalc-modal-content" style="width:680px;max-height:90vh;">
+            <div class="cmcalc-modal-header">
+                <h3>E-mail preview</h3>
+                <button type="button" class="cmcalc-modal-close">&times;</button>
+            </div>
+            <div class="cmcalc-modal-body" style="padding:0;overflow:auto;max-height:calc(90vh - 120px);">
+                <iframe id="cmcalcEmailPreviewFrame" style="width:100%;min-height:600px;border:none;"></iframe>
+            </div>
+        </div>
     </div>
 
     <div class="cmcalc-settings-card">

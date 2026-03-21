@@ -37,6 +37,7 @@ class CMCalc_Admin {
             'cmcalc_wizard_complete',
             'cmcalc_save_dienst_bedrijven',
             'cmcalc_save_volume_tiers',
+            'cmcalc_preview_email',
         );
         foreach ( $ajax_actions as $action ) {
             add_action( 'wp_ajax_' . $action, array( __CLASS__, 'handle_' . $action ) );
@@ -71,6 +72,7 @@ class CMCalc_Admin {
     public static function enqueue_assets( $hook ) {
         if ( $hook !== 'toplevel_page_cmcalc-dashboard' && $hook !== 'admin_page_cmcalc-setup' ) return;
 
+        wp_enqueue_media();
         wp_enqueue_style( 'wp-color-picker' );
         wp_enqueue_style( 'cmcalc-admin', CMCALC_PLUGIN_URL . 'admin/css/admin.css', array( 'wp-color-picker' ), CMCALC_VERSION );
         wp_enqueue_script( 'jquery-ui-sortable' );
@@ -277,6 +279,16 @@ class CMCalc_Admin {
         }
 
         wp_send_json_success( array( 'tiers' => $clean, 'bedrijf_id' => $bedrijf_id ) );
+    }
+
+    // ─── AJAX: Email Preview ───
+
+    public static function handle_cmcalc_preview_email() {
+        check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
+        if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Geen toegang' );
+
+        $html = CMCalc_Email::get_preview_html();
+        wp_send_json_success( array( 'html' => $html ) );
     }
 
     // ─── AJAX: Werkgebieden ───
@@ -509,7 +521,14 @@ class CMCalc_Admin {
 
         if ( ! $post_id || ! in_array( $status, $valid ) ) wp_send_json_error( 'Ongeldige gegevens' );
 
+        $old_status = get_post_meta( $post_id, '_cm_booking_status', true ) ?: 'nieuw';
         update_post_meta( $post_id, '_cm_booking_status', $status );
+
+        // Send status update email to customer
+        if ( $old_status !== $status ) {
+            CMCalc_Email::send_status_update( $post_id, $old_status, $status );
+        }
+
         wp_send_json_success( array( 'status' => $status ) );
     }
 
@@ -612,11 +631,7 @@ class CMCalc_Admin {
         $post_id = intval( $_POST['post_id'] ?? 0 );
         if ( ! $post_id ) wp_send_json_error( 'Ongeldig ID' );
 
-        $email_data = CMCalc_REST_API::build_booking_email_body( $post_id );
-        $settings   = self::get_settings();
-        $admin_email = ! empty( $settings['admin_email'] ) ? $settings['admin_email'] : get_option( 'admin_email' );
-
-        $sent = wp_mail( $admin_email, $email_data['subject'], $email_data['body'] );
+        $sent = CMCalc_Email::send_admin_notification( $post_id );
 
         if ( $sent ) {
             wp_send_json_success();
@@ -836,9 +851,18 @@ class CMCalc_Admin {
         $defaults = self::get_settings_defaults();
         $clean = array();
 
-        $text_fields = array( 'calc_title', 'btn_step1', 'btn_step2', 'btn_step3', 'disclaimer_text', 'success_text', 'admin_email', 'email_subject' );
+        $text_fields = array( 'calc_title', 'btn_step1', 'btn_step2', 'btn_step3', 'disclaimer_text', 'success_text', 'admin_email', 'email_subject', 'email_footer_text' );
         foreach ( $text_fields as $field ) {
             $clean[ $field ] = isset( $data[ $field ] ) ? sanitize_text_field( $data[ $field ] ) : $defaults[ $field ];
+        }
+
+        // URL fields
+        $clean['email_logo_url'] = isset( $data['email_logo_url'] ) ? esc_url_raw( $data['email_logo_url'] ) : $defaults['email_logo_url'];
+
+        // Toggle fields (checkboxes stored as '1' or '0')
+        $toggle_fields = array( 'email_customer_enabled', 'email_status_enabled' );
+        foreach ( $toggle_fields as $field ) {
+            $clean[ $field ] = ! empty( $data[ $field ] ) ? '1' : '0';
         }
 
         $clean['btw_percentage'] = isset( $data['btw_percentage'] ) ? max( 0, min( 100, floatval( $data['btw_percentage'] ) ) ) : $defaults['btw_percentage'];
@@ -941,16 +965,20 @@ class CMCalc_Admin {
 
     public static function get_settings_defaults() {
         return array(
-            'calc_title'      => 'Stel uw pakket samen',
-            'btn_step1'       => 'Bekijk overzicht',
-            'btn_step2'       => 'Boek nu',
-            'btn_step3'       => 'Boeking bevestigen',
-            'disclaimer_text' => 'Aan deze prijsindicatie kunnen geen rechten worden ontleend. Na uw aanvraag nemen wij altijd persoonlijk contact met u op.',
-            'success_text'    => 'Wij nemen zo snel mogelijk contact met u op om de afspraak te bevestigen.',
-            'admin_email'     => get_option( 'admin_email' ),
-            'email_subject'   => 'Nieuwe boeking via calculator',
-            'btw_percentage'  => 21,
-            'show_btw'        => 'incl',
+            'calc_title'             => 'Stel uw pakket samen',
+            'btn_step1'              => 'Bekijk overzicht',
+            'btn_step2'              => 'Boek nu',
+            'btn_step3'              => 'Boeking bevestigen',
+            'disclaimer_text'        => 'Aan deze prijsindicatie kunnen geen rechten worden ontleend. Na uw aanvraag nemen wij altijd persoonlijk contact met u op.',
+            'success_text'           => 'Wij nemen zo snel mogelijk contact met u op om de afspraak te bevestigen.',
+            'admin_email'            => get_option( 'admin_email' ),
+            'email_subject'          => 'Nieuwe boeking via calculator',
+            'btw_percentage'         => 21,
+            'show_btw'               => 'incl',
+            'email_customer_enabled' => '1',
+            'email_status_enabled'   => '1',
+            'email_logo_url'         => '',
+            'email_footer_text'      => 'Heeft u vragen? Neem gerust contact met ons op.',
         );
     }
 

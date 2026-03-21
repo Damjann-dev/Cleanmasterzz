@@ -411,11 +411,9 @@ class CMCalc_REST_API {
         // Set default status
         update_post_meta( $booking_id, '_cm_booking_status', 'nieuw' );
 
-        // Build and send email using helper
-        $email_data = self::build_booking_email_body( $booking_id );
-        $settings   = CMCalc_Admin::get_settings();
-        $admin_email_addr = ! empty( $settings['admin_email'] ) ? $settings['admin_email'] : get_option( 'admin_email' );
-        wp_mail( $admin_email_addr, $email_data['subject'], $email_data['body'] );
+        // Send HTML emails
+        CMCalc_Email::send_admin_notification( $booking_id );
+        CMCalc_Email::send_customer_confirmation( $booking_id );
 
         return rest_ensure_response( array(
             'success'    => true,

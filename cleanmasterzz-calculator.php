@@ -23,6 +23,7 @@ require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-rest-api.php';
 require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-shortcode.php';
 require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-seeder.php';
 require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-admin.php';
+require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-email.php';
 
 // Init
 add_action( 'init', array( 'CMCalc_Post_Types', 'register' ), 5 );

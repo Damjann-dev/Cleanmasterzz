@@ -1433,9 +1433,41 @@
     $('#cmcalcSaveEmail').on('click', function() {
         var data = {
             admin_email: $('#cmcalcAdminEmail').val(),
-            email_subject: $('#cmcalcEmailSubject').val()
+            email_subject: $('#cmcalcEmailSubject').val(),
+            email_logo_url: $('#cmcalcEmailLogoUrl').val(),
+            email_footer_text: $('#cmcalcEmailFooter').val(),
+            email_customer_enabled: $('#cmcalcEmailCustomerEnabled').is(':checked') ? '1' : '0',
+            email_status_enabled: $('#cmcalcEmailStatusEnabled').is(':checked') ? '1' : '0'
         };
         saveSettings(data, '#cmcalcEmailStatus');
+    });
+
+    // Email logo media picker
+    $('#cmcalcEmailLogoBtn').on('click', function() {
+        if (typeof wp === 'undefined' || typeof wp.media === 'undefined') {
+            showToast('Media library niet beschikbaar', 'error');
+            return;
+        }
+        var frame = wp.media({ title: 'Kies een logo', multiple: false, library: { type: 'image' } });
+        frame.on('select', function() {
+            var attachment = frame.state().get('selection').first().toJSON();
+            $('#cmcalcEmailLogoUrl').val(attachment.url);
+        });
+        frame.open();
+    });
+
+    // Email preview
+    $('#cmcalcPreviewEmail').on('click', function() {
+        $.post(ajaxUrl, { action: 'cmcalc_preview_email', nonce: nonce }).done(function(res) {
+            if (res.success) {
+                var iframe = document.getElementById('cmcalcEmailPreviewFrame');
+                var doc = iframe.contentDocument || iframe.contentWindow.document;
+                doc.open();
+                doc.write(res.data.html);
+                doc.close();
+                $('#cmcalcEmailPreviewModal').show();
+            }
+        });
     });
 
     // Save BTW settings
