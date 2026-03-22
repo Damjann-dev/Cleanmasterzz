@@ -73,9 +73,17 @@ class CMCalc_Updater {
      * Inject auth header when WordPress downloads the ZIP from GitHub
      */
     public static function inject_download_auth( $args, $url ) {
-        // Only inject for GitHub downloads from our repo
-        if ( strpos( $url, 'github.com/' . self::$github_owner . '/' . self::$github_repo ) === false
-            && strpos( $url, 'api.github.com/repos/' . self::$github_owner . '/' . self::$github_repo ) === false ) {
+        // Only inject for GitHub asset downloads (not API list/info calls)
+        // Asset download URLs contain /releases/assets/ or /releases/download/
+        $is_asset_download = ( strpos( $url, '/releases/assets/' ) !== false
+            || strpos( $url, '/releases/download/' ) !== false );
+
+        if ( ! $is_asset_download ) {
+            return $args;
+        }
+
+        // Verify it's our repo
+        if ( strpos( $url, self::$github_owner . '/' . self::$github_repo ) === false ) {
             return $args;
         }
 

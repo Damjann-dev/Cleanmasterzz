@@ -1264,7 +1264,14 @@ class CMCalc_Admin {
 
         $code = wp_remote_retrieve_response_code( $response );
         if ( $code !== 200 ) {
-            wp_send_json_error( 'GitHub API gaf status ' . $code . '. Controleer je token.' );
+            $body = wp_remote_retrieve_body( $response );
+            $headers_sent = wp_remote_retrieve_headers( $response );
+            wp_send_json_error( array(
+                'message' => 'GitHub API gaf status ' . $code,
+                'body'    => substr( $body, 0, 500 ),
+                'token_len' => strlen( $token ),
+                'token_prefix' => substr( $token, 0, 4 ),
+            ) );
         }
 
         $releases = json_decode( wp_remote_retrieve_body( $response ), true );

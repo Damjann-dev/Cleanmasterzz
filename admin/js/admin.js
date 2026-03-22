@@ -1535,7 +1535,14 @@
                     showToast('Je hebt de nieuwste versie (' + res.data.current_version + ')');
                 }
             } else {
-                showToast('Kon niet controleren: ' + (res.data || 'Controleer je token'), 'error');
+                var msg = 'Kon niet controleren';
+                if (res.data && typeof res.data === 'object') {
+                    msg += ': ' + (res.data.message || '') + ' | Body: ' + (res.data.body || '').substring(0, 200);
+                    console.log('Update check debug:', res.data);
+                } else {
+                    msg += ': ' + (res.data || 'Controleer je token');
+                }
+                showToast(msg, 'error');
             }
         }).fail(function() {
             showToast('Verbinding mislukt', 'error');
