@@ -1530,7 +1530,10 @@
         }).done(function(res) {
             if (res.success && res.data) {
                 if (res.data.update_available) {
-                    showToast('Update beschikbaar: v' + res.data.remote_version + '! Ga naar Plugins om te updaten.');
+                    showToast('Update beschikbaar: v' + res.data.remote_version + '! Je wordt doorgestuurd naar Updates...');
+                    setTimeout(function() {
+                        window.location.href = cmcalcAdmin.adminUrl + 'update-core.php';
+                    }, 1500);
                 } else {
                     showToast('Je hebt de nieuwste versie (' + res.data.current_version + ')');
                 }

@@ -81,6 +81,7 @@ class CMCalc_Admin {
         wp_enqueue_script( 'cmcalc-admin', CMCALC_PLUGIN_URL . 'admin/js/admin.js', array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker' ), CMCALC_VERSION, true );
         wp_localize_script( 'cmcalc-admin', 'cmcalcAdmin', array(
             'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+            'adminUrl'  => admin_url(),
             'restUrl'   => rest_url( 'cleanmasterzz/v1/' ),
             'nonce'     => wp_create_nonce( 'cmcalc_admin_nonce' ),
             'restNonce' => wp_create_nonce( 'wp_rest' ),
@@ -1237,9 +1238,12 @@ class CMCalc_Admin {
         check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
         if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Geen toegang' );
 
-        // Clear cache to force fresh check
+        // Clear ALL caches to force fresh check
         delete_transient( 'cmcalc_update_check' );
         delete_site_transient( 'update_plugins' );
+
+        // Force WordPress to rebuild update_plugins transient
+        wp_clean_plugins_cache( true );
 
         // Fetch remote info directly
         $token = get_option( 'cmcalc_github_token', '' );
@@ -1290,6 +1294,49 @@ class CMCalc_Admin {
         }
 
         $update_available = version_compare( CMCALC_VERSION, $best_version, '<' );
+
+        // If update available, force it into WordPress' update system
+        if ( $update_available ) {
+            // Find download URL for best release
+            $download_url = '';
+            $best_release = null;
+            foreach ( $releases as $release ) {
+                $v = ltrim( $release['tag_name'], 'vV' );
+                if ( $v === $best_version ) {
+                    $best_release = $release;
+                    break;
+                }
+            }
+            if ( $best_release && ! empty( $best_release['assets'] ) ) {
+                foreach ( $best_release['assets'] as $asset ) {
+                    if ( strpos( $asset['name'], '.zip' ) !== false ) {
+                        $download_url = $token ? $asset['url'] : $asset['browser_download_url'];
+                        break;
+                    }
+                }
+            }
+            if ( ! $download_url && $best_release ) {
+                $download_url = $best_release['zipball_url'] ?? '';
+            }
+
+            // Inject into WordPress update transient
+            $transient = get_site_transient( 'update_plugins' );
+            if ( ! is_object( $transient ) ) {
+                $transient = new \stdClass();
+                $transient->response = array();
+                $transient->checked = array();
+            }
+            $plugin_basename = 'cleanmasterzz-calculator/cleanmasterzz-calculator.php';
+            $transient->response[ $plugin_basename ] = (object) array(
+                'slug'        => 'cleanmasterzz-calculator',
+                'plugin'      => $plugin_basename,
+                'new_version' => $best_version,
+                'package'     => $download_url,
+                'url'         => $best_release['html_url'] ?? '',
+            );
+            $transient->checked[ $plugin_basename ] = CMCALC_VERSION;
+            set_site_transient( 'update_plugins', $transient );
+        }
 
         wp_send_json_success( array(
             'current_version'  => CMCALC_VERSION,
