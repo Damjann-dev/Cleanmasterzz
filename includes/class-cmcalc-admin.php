@@ -38,6 +38,8 @@ class CMCalc_Admin {
             'cmcalc_save_dienst_bedrijven',
             'cmcalc_save_volume_tiers',
             'cmcalc_preview_email',
+            'cmcalc_save_github_token',
+            'cmcalc_check_update',
         );
         foreach ( $ajax_actions as $action ) {
             add_action( 'wp_ajax_' . $action, array( __CLASS__, 'handle_' . $action ) );
@@ -1213,5 +1215,78 @@ class CMCalc_Admin {
         }
 
         wp_send_json_success( array( 'bedrijf_id' => $bedrijf_id ) );
+    }
+
+    // ─── GitHub Token & Auto-updater ───
+
+    public static function handle_cmcalc_save_github_token() {
+        check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
+        if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Geen toegang' );
+
+        $token = sanitize_text_field( wp_unslash( $_POST['token'] ?? '' ) );
+        update_option( 'cmcalc_github_token', $token );
+
+        // Clear update cache so next check uses new token
+        delete_transient( 'cmcalc_update_check' );
+        delete_site_transient( 'update_plugins' );
+
+        wp_send_json_success();
+    }
+
+    public static function handle_cmcalc_check_update() {
+        check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
+        if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Geen toegang' );
+
+        // Clear cache to force fresh check
+        delete_transient( 'cmcalc_update_check' );
+        delete_site_transient( 'update_plugins' );
+
+        // Fetch remote info directly
+        $token = get_option( 'cmcalc_github_token', '' );
+        $headers = array(
+            'Accept'     => 'application/vnd.github.v3+json',
+            'User-Agent' => 'CleanmasterzzCalculator/' . CMCALC_VERSION,
+        );
+        if ( $token ) {
+            $headers['Authorization'] = 'token ' . $token;
+        }
+
+        $url = 'https://api.github.com/repos/Damjann-dev/Cleanmasterzz/releases';
+        $response = wp_remote_get( $url, array(
+            'timeout' => 15,
+            'headers' => $headers,
+        ) );
+
+        if ( is_wp_error( $response ) ) {
+            wp_send_json_error( $response->get_error_message() );
+        }
+
+        $code = wp_remote_retrieve_response_code( $response );
+        if ( $code !== 200 ) {
+            wp_send_json_error( 'GitHub API gaf status ' . $code . '. Controleer je token.' );
+        }
+
+        $releases = json_decode( wp_remote_retrieve_body( $response ), true );
+        if ( empty( $releases ) || ! is_array( $releases ) ) {
+            wp_send_json_error( 'Geen releases gevonden' );
+        }
+
+        // Find highest version
+        $best_version = '0.0.0';
+        foreach ( $releases as $release ) {
+            if ( ! empty( $release['draft'] ) ) continue;
+            $v = ltrim( $release['tag_name'], 'vV' );
+            if ( version_compare( $v, $best_version, '>' ) ) {
+                $best_version = $v;
+            }
+        }
+
+        $update_available = version_compare( CMCALC_VERSION, $best_version, '<' );
+
+        wp_send_json_success( array(
+            'current_version'  => CMCALC_VERSION,
+            'remote_version'   => $best_version,
+            'update_available' => $update_available,
+        ) );
     }
 }

@@ -170,6 +170,33 @@ $travel_price = $travel ? get_post_meta( $travel->ID, '_cm_base_price', true ) :
     </div>
 
     <div class="cmcalc-settings-card">
+        <div class="cmcalc-settings-card-icon" style="background: linear-gradient(135deg, #333, #555);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        </div>
+        <h3>Auto-updater</h3>
+        <p class="description">GitHub token voor automatische plugin updates (vereist voor privé repos).</p>
+
+        <div class="cmcalc-settings-field">
+            <label for="cmcalcGithubToken">GitHub Token</label>
+            <input type="password" id="cmcalcGithubToken" value="<?php echo esc_attr( get_option( 'cmcalc_github_token', '' ) ); ?>" class="regular-text" placeholder="ghp_... of gho_...">
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:18px;align-items:center;">
+            <button type="button" class="button cmcalc-btn-primary" id="cmcalcSaveGithubToken">
+                Opslaan
+            </button>
+            <button type="button" class="button" id="cmcalcTestUpdate">
+                🔄 Check nu op updates
+            </button>
+            <span class="cmcalc-save-status" id="cmcalcGithubTokenStatus"></span>
+        </div>
+
+        <p class="description" style="margin-top:10px;font-size:12px;opacity:0.7;">
+            Huidige versie: <strong><?php echo CMCALC_VERSION; ?></strong>
+        </p>
+    </div>
+
+    <div class="cmcalc-settings-card">
         <div class="cmcalc-settings-card-icon" style="background: linear-gradient(135deg, #f59e0b, #ea580c);">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>

@@ -1502,6 +1502,48 @@
         });
     }
 
+    // ─── GitHub Token & Auto-updater ───
+
+    $('#cmcalcSaveGithubToken').on('click', function() {
+        var token = $('#cmcalcGithubToken').val().trim();
+        $.post(ajaxUrl, {
+            action: 'cmcalc_save_github_token',
+            nonce: nonce,
+            token: token
+        }).done(function(res) {
+            if (res.success) {
+                showToast('GitHub token opgeslagen!');
+                $('#cmcalcGithubTokenStatus').text('Opgeslagen!').show();
+                setTimeout(function() { $('#cmcalcGithubTokenStatus').fadeOut(); }, 2000);
+            } else {
+                showToast('Opslaan mislukt: ' + (res.data || ''), 'error');
+            }
+        });
+    });
+
+    $('#cmcalcTestUpdate').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).text('Controleren...');
+        $.post(ajaxUrl, {
+            action: 'cmcalc_check_update',
+            nonce: nonce
+        }).done(function(res) {
+            if (res.success && res.data) {
+                if (res.data.update_available) {
+                    showToast('Update beschikbaar: v' + res.data.remote_version + '! Ga naar Plugins om te updaten.');
+                } else {
+                    showToast('Je hebt de nieuwste versie (' + res.data.current_version + ')');
+                }
+            } else {
+                showToast('Kon niet controleren: ' + (res.data || 'Controleer je token'), 'error');
+            }
+        }).fail(function() {
+            showToast('Verbinding mislukt', 'error');
+        }).always(function() {
+            $btn.prop('disabled', false).text('🔄 Check nu op updates');
+        });
+    });
+
     // ─── Helpers ───
 
     function escAttr(str) {
