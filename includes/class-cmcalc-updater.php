@@ -58,13 +58,12 @@ class CMCalc_Updater {
      */
     private static function get_github_headers() {
         $headers = array(
-            'Accept'     => 'application/vnd.github.v3+json',
-            'User-Agent' => 'CleanmasterzzCalculator/' . CMCALC_VERSION,
+            'Accept' => 'application/json',
         );
 
         $token = self::get_token();
         if ( $token ) {
-            $headers['Authorization'] = 'token ' . $token;
+            $headers['Authorization'] = 'Bearer ' . $token;
         }
 
         return $headers;
@@ -82,7 +81,7 @@ class CMCalc_Updater {
 
         $token = self::get_token();
         if ( $token ) {
-            $args['headers']['Authorization'] = 'token ' . $token;
+            $args['headers']['Authorization'] = 'Bearer ' . $token;
             $args['headers']['Accept'] = 'application/octet-stream';
         }
 
@@ -223,8 +222,9 @@ class CMCalc_Updater {
         );
 
         $response = wp_remote_get( $url, array(
-            'timeout' => 15,
-            'headers' => self::get_github_headers(),
+            'timeout'    => 15,
+            'user-agent' => 'CleanmasterzzCalculator/' . CMCALC_VERSION,
+            'headers'    => self::get_github_headers(),
         ) );
 
         if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {

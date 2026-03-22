@@ -1243,19 +1243,20 @@ class CMCalc_Admin {
 
         // Fetch remote info directly
         $token = get_option( 'cmcalc_github_token', '' );
-        $headers = array(
-            'Accept'     => 'application/vnd.github.v3+json',
-            'User-Agent' => 'CleanmasterzzCalculator/' . CMCALC_VERSION,
+
+        $args = array(
+            'timeout'    => 15,
+            'user-agent' => 'CleanmasterzzCalculator/' . CMCALC_VERSION,
+            'headers'    => array(
+                'Accept' => 'application/json',
+            ),
         );
         if ( $token ) {
-            $headers['Authorization'] = 'token ' . $token;
+            $args['headers']['Authorization'] = 'Bearer ' . $token;
         }
 
         $url = 'https://api.github.com/repos/Damjann-dev/Cleanmasterzz/releases';
-        $response = wp_remote_get( $url, array(
-            'timeout' => 15,
-            'headers' => $headers,
-        ) );
+        $response = wp_remote_get( $url, $args );
 
         if ( is_wp_error( $response ) ) {
             wp_send_json_error( $response->get_error_message() );
