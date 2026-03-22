@@ -24,6 +24,7 @@ require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-shortcode.php';
 require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-seeder.php';
 require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-admin.php';
 require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-email.php';
+require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-updater.php';
 
 // Init
 add_action( 'init', array( 'CMCalc_Post_Types', 'register' ), 5 );
@@ -34,6 +35,9 @@ if ( is_admin() ) {
     CMCalc_Admin::init();
     CMCalc_Meta_Boxes::init();
 }
+
+// Auto-updater (GitHub releases)
+CMCalc_Updater::init( __FILE__ );
 
 // Activation
 register_activation_hook( __FILE__, function() {
