@@ -40,6 +40,9 @@ class CMCalc_Admin {
             'cmcalc_preview_email',
             'cmcalc_save_github_token',
             'cmcalc_check_update',
+            'cmcalc_save_discount_code',
+            'cmcalc_get_discount_codes',
+            'cmcalc_delete_discount_code',
         );
         foreach ( $ajax_actions as $action ) {
             add_action( 'wp_ajax_' . $action, array( __CLASS__, 'handle_' . $action ) );
@@ -115,6 +118,7 @@ class CMCalc_Admin {
             'minimum_price'    => '_cm_minimum_price',
             'discount_percent' => '_cm_discount_percent',
             'requires_quote'   => '_cm_requires_quote',
+            'icon'             => '_cm_icon',
         );
 
         if ( ! isset( $allowed_fields[ $field ] ) ) wp_send_json_error( 'Ongeldig veld' );
@@ -884,7 +888,7 @@ class CMCalc_Admin {
         $defaults = self::get_settings_defaults();
         $clean = array();
 
-        $text_fields = array( 'calc_title', 'btn_step1', 'btn_step2', 'btn_step3', 'disclaimer_text', 'success_text', 'admin_email', 'email_subject', 'email_footer_text' );
+        $text_fields = array( 'calc_title', 'btn_step1', 'btn_step2', 'btn_step3', 'disclaimer_text', 'success_text', 'admin_email', 'email_subject', 'email_footer_text', 'whatsapp_number' );
         foreach ( $text_fields as $field ) {
             $clean[ $field ] = isset( $data[ $field ] ) ? sanitize_text_field( $data[ $field ] ) : $defaults[ $field ];
         }
@@ -994,6 +998,56 @@ class CMCalc_Admin {
         );
     }
 
+    // ─── AJAX: Discount Codes ───
+
+    public static function handle_cmcalc_save_discount_code() {
+        check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
+        if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Geen toegang' );
+
+        $codes = get_option( 'cmcalc_discount_codes', array() );
+        $new_code = array(
+            'code'     => strtoupper( sanitize_text_field( $_POST['code'] ?? '' ) ),
+            'type'     => sanitize_text_field( $_POST['type'] ?? 'percentage' ),
+            'value'    => floatval( $_POST['value'] ?? 0 ),
+            'max_uses' => intval( $_POST['max_uses'] ?? 0 ),
+            'used'     => 0,
+            'active'   => true,
+            'expires'  => sanitize_text_field( $_POST['expires'] ?? '' ),
+        );
+
+        if ( empty( $new_code['code'] ) ) wp_send_json_error( 'Code is verplicht' );
+
+        // Check for duplicates
+        foreach ( $codes as $existing ) {
+            if ( $existing['code'] === $new_code['code'] ) {
+                wp_send_json_error( 'Code bestaat al' );
+            }
+        }
+
+        $codes[] = $new_code;
+        update_option( 'cmcalc_discount_codes', $codes );
+        wp_send_json_success( $codes );
+    }
+
+    public static function handle_cmcalc_get_discount_codes() {
+        check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
+        $codes = get_option( 'cmcalc_discount_codes', array() );
+        wp_send_json_success( $codes );
+    }
+
+    public static function handle_cmcalc_delete_discount_code() {
+        check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
+        if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Geen toegang' );
+
+        $code_to_delete = strtoupper( sanitize_text_field( $_POST['code'] ?? '' ) );
+        $codes = get_option( 'cmcalc_discount_codes', array() );
+        $codes = array_values( array_filter( $codes, function( $c ) use ( $code_to_delete ) {
+            return $c['code'] !== $code_to_delete;
+        } ) );
+        update_option( 'cmcalc_discount_codes', $codes );
+        wp_send_json_success( $codes );
+    }
+
     // ─── Helpers: Settings ───
 
     public static function get_settings_defaults() {
@@ -1012,6 +1066,7 @@ class CMCalc_Admin {
             'email_status_enabled'   => '1',
             'email_logo_url'         => '',
             'email_footer_text'      => 'Heeft u vragen? Neem gerust contact met ons op.',
+            'whatsapp_number'        => '',
         );
     }
 

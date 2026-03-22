@@ -50,8 +50,9 @@ class CMCalc_Shortcode {
                 'success_text'    => $settings['success_text'],
             ),
             'settings' => array(
-                'btw_percentage' => $settings['btw_percentage'],
-                'show_btw'       => $settings['show_btw'],
+                'btw_percentage'  => $settings['btw_percentage'],
+                'show_btw'        => $settings['show_btw'],
+                'whatsapp_number' => $settings['whatsapp_number'] ?? '',
             ),
         ) );
     }

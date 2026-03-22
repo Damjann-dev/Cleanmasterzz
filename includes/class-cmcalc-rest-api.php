@@ -24,6 +24,12 @@ class CMCalc_REST_API {
             'permission_callback' => '__return_true',
         ) );
 
+        register_rest_route( $ns, '/validate-code', array(
+            'methods'  => 'POST',
+            'callback' => array( __CLASS__, 'validate_discount_code' ),
+            'permission_callback' => '__return_true',
+        ) );
+
         register_rest_route( $ns, '/geocode-werkgebied', array(
             'methods'             => 'POST',
             'callback'            => array( __CLASS__, 'geocode_werkgebied' ),
@@ -76,6 +82,7 @@ class CMCalc_REST_API {
                 'requires_quote' => get_post_meta( $service->ID, '_cm_requires_quote', true ) === '1',
                 'sub_options'    => $sub_options,
                 'volume_tiers'   => json_decode( get_post_meta( $service->ID, '_cm_volume_tiers', true ) ?: '[]', true ),
+                'icon'           => get_post_meta( $service->ID, '_cm_icon', true ),
             );
 
             if ( $price_unit === 'km' ) {
@@ -411,6 +418,20 @@ class CMCalc_REST_API {
         // Set default status
         update_post_meta( $booking_id, '_cm_booking_status', 'nieuw' );
 
+        // Increment discount code usage if applicable
+        $discount_code = sanitize_text_field( $request->get_param( 'discount_code' ) );
+        if ( $discount_code ) {
+            $codes = get_option( 'cmcalc_discount_codes', array() );
+            foreach ( $codes as &$c ) {
+                if ( $c['code'] === strtoupper( $discount_code ) ) {
+                    $c['used'] = ( $c['used'] ?? 0 ) + 1;
+                    break;
+                }
+            }
+            update_option( 'cmcalc_discount_codes', $codes );
+            update_post_meta( $booking_id, '_cm_discount_code', strtoupper( $discount_code ) );
+        }
+
         // Send HTML emails
         CMCalc_Email::send_admin_notification( $booking_id );
         CMCalc_Email::send_customer_confirmation( $booking_id );
@@ -534,6 +555,40 @@ class CMCalc_REST_API {
         }
 
         return $nearest;
+    }
+
+    /**
+     * Validate a discount code (public endpoint)
+     */
+    public static function validate_discount_code( $request ) {
+        $code = strtoupper( sanitize_text_field( $request->get_param( 'code' ) ) );
+        $subtotal = floatval( $request->get_param( 'subtotal' ) );
+
+        $codes = get_option( 'cmcalc_discount_codes', array() );
+
+        foreach ( $codes as &$c ) {
+            if ( $c['code'] !== $code ) continue;
+            if ( ! $c['active'] ) return new WP_REST_Response( array( 'valid' => false, 'message' => 'Code is niet meer actief' ), 200 );
+            if ( $c['expires'] && strtotime( $c['expires'] ) < time() ) return new WP_REST_Response( array( 'valid' => false, 'message' => 'Code is verlopen' ), 200 );
+            if ( $c['max_uses'] > 0 && $c['used'] >= $c['max_uses'] ) return new WP_REST_Response( array( 'valid' => false, 'message' => 'Code is maximaal gebruikt' ), 200 );
+
+            $discount = 0;
+            if ( $c['type'] === 'percentage' ) {
+                $discount = $subtotal * ( $c['value'] / 100 );
+            } else {
+                $discount = min( $c['value'], $subtotal );
+            }
+
+            return new WP_REST_Response( array(
+                'valid'    => true,
+                'type'     => $c['type'],
+                'value'    => $c['value'],
+                'discount' => round( $discount, 2 ),
+                'label'    => $c['type'] === 'percentage' ? '-' . $c['value'] . '%' : '-€' . number_format( $c['value'], 2, ',', '.' ),
+            ), 200 );
+        }
+
+        return new WP_REST_Response( array( 'valid' => false, 'message' => 'Ongeldige code' ), 200 );
     }
 
     /**

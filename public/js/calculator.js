@@ -40,6 +40,8 @@
     var isZakelijk           = false;
     var subOptionSelections  = {};  // { serviceIndex: [{checked, value, label}, ...] }
     var pendingQServiceIndex = -1;  // Service index awaiting questionnaire confirmation
+    var appliedDiscount      = null;
+    var currentSubtotal      = 0;
 
     // ──────────────────────────────────────────────
     // Unit labels
@@ -234,7 +236,18 @@
 
             // Name
             var nameEl = card.querySelector('.cmcalc-service__name');
-            if (nameEl) nameEl.textContent = service.title;
+            if (nameEl) {
+                var iconMap = {
+                    'window': '\uD83E\uDE9F', 'terrace': '\uD83C\uDFE1', 'facade': '\uD83C\uDFE2', 'pressure': '\uD83D\uDCA6',
+                    'solar': '\u2600\uFE0F', 'construction': '\uD83C\uDFD7\uFE0F', 'roof': '\uD83C\uDFE0', 'clean': '\u2728',
+                    'car': '\uD83D\uDE97', 'custom': '\uD83D\uDCDD'
+                };
+                if (service.icon && iconMap[service.icon]) {
+                    nameEl.textContent = iconMap[service.icon] + ' ' + service.title;
+                } else {
+                    nameEl.textContent = service.title;
+                }
+            }
 
             // Price info
             var priceEl = card.querySelector('.cmcalc-service__price');
@@ -1132,6 +1145,30 @@
             overviewEl.appendChild(row);
         });
 
+        // Store subtotal for discount calculations
+        currentSubtotal = servicesSubtotal;
+
+        // Apply discount if active
+        var discountRow = document.getElementById('cmcalcDiscountRow');
+        var discountAmountEl = document.getElementById('cmcalcDiscountAmount');
+        var discountLabelEl = document.getElementById('cmcalcDiscountLabel');
+        if (appliedDiscount && appliedDiscount.valid) {
+            var discountAmt = 0;
+            if (appliedDiscount.type === 'percentage') {
+                discountAmt = servicesSubtotal * (appliedDiscount.value / 100);
+            } else {
+                discountAmt = Math.min(appliedDiscount.value, servicesSubtotal);
+            }
+            servicesSubtotal -= discountAmt;
+            if (discountRow) {
+                discountRow.style.display = '';
+                if (discountLabelEl) discountLabelEl.textContent = 'Korting (' + appliedDiscount.label + ')';
+                if (discountAmountEl) discountAmountEl.textContent = '-' + formatPrice(discountAmt);
+            }
+        } else {
+            if (discountRow) discountRow.style.display = 'none';
+        }
+
         // Travel surcharge row
         var travelAmount = 0;
         if (surchargeRow) {
@@ -1148,7 +1185,7 @@
         var btwCalc = calculateBtw(servicesSubtotal, travelAmount);
 
         // Update subtotal display (services only, without travel)
-        if (subtotalEl) subtotalEl.textContent = formatPrice(servicesSubtotal);
+        if (subtotalEl) subtotalEl.textContent = formatPrice(currentSubtotal);
 
         // BTW row
         var btwRowEl = btwEl ? btwEl.closest('.cmcalc-totals-card__row') : null;
@@ -1342,7 +1379,8 @@
                 total:              grandTotal,
                 preferred_date:     date,
                 message:            msg,
-                is_zakelijk:        isZakelijk
+                is_zakelijk:        isZakelijk,
+                discount_code:      appliedDiscount ? appliedDiscount.code : ''
             })
         })
         .then(function(r) { return r.json(); })
@@ -1524,16 +1562,122 @@
     }
 
     // ──────────────────────────────────────────────
+    // Discount Code
+    // ──────────────────────────────────────────────
+
+    calculator.addEventListener('click', function(e) {
+        // Show discount input
+        if (e.target.closest('#cmcalcShowDiscount')) {
+            e.preventDefault();
+            var wrap = document.getElementById('cmcalcDiscountWrap');
+            if (wrap) wrap.style.display = '';
+            e.target.closest('#cmcalcShowDiscount').style.display = 'none';
+            return;
+        }
+
+        // Apply discount code
+        if (e.target.closest('#cmcalcApplyDiscount')) {
+            var input = document.getElementById('cmcalcDiscountInput');
+            var code = input ? input.value.trim() : '';
+            if (!code) return;
+
+            var btn = e.target.closest('#cmcalcApplyDiscount');
+            btn.disabled = true;
+            btn.textContent = 'Controleren...';
+
+            fetch(restUrl + 'validate-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': nonce
+                },
+                body: JSON.stringify({ code: code, subtotal: currentSubtotal })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                var resultEl = document.getElementById('cmcalcDiscountResult');
+                if (res.valid) {
+                    appliedDiscount = res;
+                    appliedDiscount.code = code.toUpperCase();
+                    if (resultEl) {
+                        resultEl.innerHTML = '<span style="color:#2e7d32;font-size:13px;">\u2713 ' + res.label + ' korting toegepast</span>' +
+                            ' <a href="#" id="cmcalcRemoveDiscount" style="color:#dc3545;font-size:12px;margin-left:8px;">Verwijderen</a>';
+                        resultEl.style.display = '';
+                    }
+                    buildOverview();
+                } else {
+                    if (resultEl) {
+                        resultEl.innerHTML = '<span style="color:#dc3545;font-size:13px;">\u2717 ' + res.message + '</span>';
+                        resultEl.style.display = '';
+                    }
+                    appliedDiscount = null;
+                }
+            })
+            .finally(function() {
+                btn.disabled = false;
+                btn.textContent = 'Toepassen';
+            });
+            return;
+        }
+
+        // Remove discount
+        if (e.target.closest('#cmcalcRemoveDiscount')) {
+            e.preventDefault();
+            appliedDiscount = null;
+            var resultEl = document.getElementById('cmcalcDiscountResult');
+            if (resultEl) resultEl.style.display = 'none';
+            var discInput = document.getElementById('cmcalcDiscountInput');
+            if (discInput) discInput.value = '';
+            buildOverview();
+            return;
+        }
+
+        // WhatsApp button
+        if (e.target.closest('#cmcalcWhatsApp')) {
+            e.preventDefault();
+            var msg = 'Hallo, ik wil graag een boeking plaatsen:\n\n';
+            var selected = getSelectedServices();
+            selected.forEach(function(svc) {
+                if (svc.requires_quote) {
+                    msg += '\u2022 ' + svc.title + ' (offerte op maat)\n';
+                } else {
+                    msg += '\u2022 ' + svc.title + ' (' + svc.quantity + ' ' + svc.unit_label + ')\n';
+                }
+            });
+            var totalEl = document.getElementById('cmcalcTotalInclBtw');
+            if (totalEl) msg += '\nTotaal: ' + totalEl.textContent + '\n';
+            var nameInput = document.getElementById('cmcalcBookingName');
+            if (nameInput && nameInput.value) msg += 'Naam: ' + nameInput.value + '\n';
+            var phoneInput = document.getElementById('cmcalcBookingPhone');
+            if (phoneInput && phoneInput.value) msg += 'Telefoon: ' + phoneInput.value + '\n';
+
+            var phone = settings.whatsapp_number.replace(/[^0-9]/g, '');
+            window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(msg), '_blank');
+            return;
+        }
+    });
+
+    // Show WhatsApp button if number is configured
+    function initWhatsApp() {
+        if (settings.whatsapp_number) {
+            var waBtn = document.getElementById('cmcalcWhatsApp');
+            if (waBtn) waBtn.style.display = '';
+        }
+    }
+
+    // ──────────────────────────────────────────────
     // Init
     // ──────────────────────────────────────────────
 
     document.addEventListener('DOMContentLoaded', function() {
         loadServices();
+        initWhatsApp();
     });
 
     // If DOM is already loaded (script loaded late), run immediately
     if (document.readyState !== 'loading') {
         loadServices();
+        initWhatsApp();
     }
 
 })();

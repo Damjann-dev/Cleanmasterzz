@@ -44,6 +44,25 @@
         }, 300);
     });
 
+    // ─── Diensten: Icon Select ───
+    $(document).on('change', '.cmcalc-icon-select', function() {
+        var $select = $(this);
+        var postId = $select.data('id');
+        var value = $select.val();
+        $.post(ajaxUrl, {
+            action: 'cmcalc_save_dienst',
+            nonce: nonce,
+            post_id: postId,
+            field: 'icon',
+            value: value
+        }).done(function(res) {
+            if (res.success) {
+                $select.css('border-color', 'var(--cmcalc-green)');
+                setTimeout(function() { $select.css('border-color', ''); }, 1500);
+            }
+        });
+    });
+
     // ─── Diensten: Toggle Active ───
 
     $(document).on('change', '.cmcalc-toggle-active', function() {
@@ -1719,5 +1738,79 @@
         if (!str) return '';
         return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
+
+    // ─── Kortingscodes ───
+    function loadDiscountCodes() {
+        $.post(ajaxUrl, { action: 'cmcalc_get_discount_codes', nonce: nonce }).done(function(res) {
+            if (res.success) renderDiscountTable(res.data);
+        });
+    }
+
+    function renderDiscountTable(codes) {
+        var $body = $('#cmcalcDiscountBody');
+        if (!codes || codes.length === 0) {
+            $body.html('<tr><td colspan="7" style="text-align:center;color:#999;">Nog geen kortingscodes</td></tr>');
+            return;
+        }
+        var html = '';
+        codes.forEach(function(c) {
+            html += '<tr>';
+            html += '<td><code style="background:#f1f3f5;padding:2px 8px;border-radius:4px;font-weight:600;">' + escAttr(c.code) + '</code></td>';
+            html += '<td>' + (c.type === 'percentage' ? 'Percentage' : 'Vast bedrag') + '</td>';
+            html += '<td>' + (c.type === 'percentage' ? c.value + '%' : '\u20AC' + parseFloat(c.value).toFixed(2)) + '</td>';
+            html += '<td>' + (c.used || 0) + '</td>';
+            html += '<td>' + (c.max_uses > 0 ? c.max_uses : '\u221E') + '</td>';
+            html += '<td>' + (c.expires || '\u2014') + '</td>';
+            html += '<td><button type="button" class="button cmcalc-delete-discount" data-code="' + escAttr(c.code) + '" title="Verwijderen" style="color:#dc3545;padding:0 8px;">\u2715</button></td>';
+            html += '</tr>';
+        });
+        $body.html(html);
+    }
+
+    $('#cmcalcAddDiscount').on('click', function() {
+        var code = $('#cmcalcDiscountCode').val().trim();
+        if (!code) { showToast('Vul een code in', 'error'); return; }
+
+        $.post(ajaxUrl, {
+            action: 'cmcalc_save_discount_code',
+            nonce: nonce,
+            code: code,
+            type: $('#cmcalcDiscountType').val(),
+            value: $('#cmcalcDiscountValue').val(),
+            max_uses: $('#cmcalcDiscountMaxUses').val() || 0,
+            expires: $('#cmcalcDiscountExpires').val()
+        }).done(function(res) {
+            if (res.success) {
+                showToast('Kortingscode toegevoegd!');
+                renderDiscountTable(res.data);
+                $('#cmcalcDiscountCode, #cmcalcDiscountValue, #cmcalcDiscountMaxUses, #cmcalcDiscountExpires').val('');
+            } else {
+                showToast(res.data || 'Fout', 'error');
+            }
+        });
+    });
+
+    $(document).on('click', '.cmcalc-delete-discount', function() {
+        var code = $(this).data('code');
+        if (!confirm('Kortingscode "' + code + '" verwijderen?')) return;
+        $.post(ajaxUrl, {
+            action: 'cmcalc_delete_discount_code',
+            nonce: nonce,
+            code: code
+        }).done(function(res) {
+            if (res.success) {
+                showToast('Verwijderd');
+                renderDiscountTable(res.data);
+            }
+        });
+    });
+
+    // Load discount codes on page load
+    loadDiscountCodes();
+
+    // ─── WhatsApp Save ───
+    $('#cmcalcSaveWhatsApp').on('click', function() {
+        saveSettings({ whatsapp_number: $('#cmcalcWhatsApp').val().trim() }, '#cmcalcWhatsAppStatus');
+    });
 
 })(jQuery);

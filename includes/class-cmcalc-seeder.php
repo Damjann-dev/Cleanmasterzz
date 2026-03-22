@@ -83,6 +83,9 @@ class CMCalc_Seeder {
                 if ( isset( $dienst['free_km'] ) ) {
                     update_post_meta( $post_id, '_cm_free_km', $dienst['free_km'] );
                 }
+                if ( ! empty( $dienst['icon'] ) ) {
+                    update_post_meta( $post_id, '_cm_icon', $dienst['icon'] );
+                }
                 if ( $bedrijf_id ) {
                     update_post_meta( $post_id, '_cm_bedrijf_ids', wp_json_encode( array( $bedrijf_id ) ) );
                 }
@@ -152,6 +155,7 @@ class CMCalc_Seeder {
                 'discount' => 0,
                 'requires_quote' => false,
                 'order' => 1,
+                'icon' => 'window',
                 'sub_options' => array(
                     array(
                         'type' => 'select',
@@ -196,6 +200,7 @@ class CMCalc_Seeder {
                 'discount' => 0,
                 'requires_quote' => false,
                 'order' => 2,
+                'icon' => 'terrace',
                 'sub_options' => array(
                     array(
                         'type' => 'checkbox',
@@ -215,11 +220,11 @@ class CMCalc_Seeder {
                     ),
                 ),
             ),
-            array( 'title' => 'Gevelreiniging', 'excerpt' => 'Verwijder jarenlange vervuiling van uw gevel.', 'base_price' => 12, 'price_unit' => 'm2', 'minimum_price' => 250, 'discount' => 0, 'requires_quote' => false, 'order' => 3 ),
-            array( 'title' => 'Hogedrukreiniging', 'excerpt' => 'Hardnekkig vuil verwijderen van opritten, stoepen en bestrating.', 'base_price' => 6, 'price_unit' => 'm2', 'minimum_price' => 125, 'discount' => 0, 'requires_quote' => false, 'order' => 4 ),
+            array( 'title' => 'Gevelreiniging', 'excerpt' => 'Verwijder jarenlange vervuiling van uw gevel.', 'base_price' => 12, 'price_unit' => 'm2', 'minimum_price' => 250, 'discount' => 0, 'requires_quote' => false, 'order' => 3, 'icon' => 'facade' ),
+            array( 'title' => 'Hogedrukreiniging', 'excerpt' => 'Hardnekkig vuil verwijderen van opritten, stoepen en bestrating.', 'base_price' => 6, 'price_unit' => 'm2', 'minimum_price' => 125, 'discount' => 0, 'requires_quote' => false, 'order' => 4, 'icon' => 'pressure' ),
             array( 'title' => 'Heetwater HD reiniging', 'excerpt' => 'Extra krachtige reiniging met heetwater hogedruk.', 'base_price' => 9, 'price_unit' => 'm2', 'minimum_price' => 175, 'discount' => 0, 'requires_quote' => false, 'order' => 5 ),
-            array( 'title' => 'Zonnepanelen reinigen', 'excerpt' => 'Haal het maximale rendement uit uw installatie.', 'base_price' => 4, 'price_unit' => 'paneel', 'minimum_price' => 500, 'discount' => 0, 'requires_quote' => false, 'order' => 6 ),
-            array( 'title' => 'Na-bouw reiniging', 'excerpt' => 'Complete schoonmaak na verbouwing of nieuwbouw.', 'base_price' => 0, 'price_unit' => 'm2', 'minimum_price' => 0, 'discount' => 0, 'requires_quote' => true, 'order' => 7 ),
+            array( 'title' => 'Zonnepanelen reinigen', 'excerpt' => 'Haal het maximale rendement uit uw installatie.', 'base_price' => 4, 'price_unit' => 'paneel', 'minimum_price' => 500, 'discount' => 0, 'requires_quote' => false, 'order' => 6, 'icon' => 'solar' ),
+            array( 'title' => 'Na-bouw reiniging', 'excerpt' => 'Complete schoonmaak na verbouwing of nieuwbouw.', 'base_price' => 0, 'price_unit' => 'm2', 'minimum_price' => 0, 'discount' => 0, 'requires_quote' => true, 'order' => 7, 'icon' => 'construction' ),
             array( 'title' => 'Studentenhuizen', 'excerpt' => 'Professionele reiniging van studentenwoningen.', 'base_price' => 0, 'price_unit' => 'm2', 'minimum_price' => 0, 'discount' => 0, 'requires_quote' => true, 'order' => 8 ),
             array( 'title' => 'VVE panden', 'excerpt' => 'Schoonmaak en onderhoud van VVE complexen.', 'base_price' => 0, 'price_unit' => 'm2', 'minimum_price' => 0, 'discount' => 0, 'requires_quote' => true, 'order' => 9 ),
             array( 'title' => 'Garagevloeren', 'excerpt' => 'Verwijder olie, vet en vuil van uw garagevloer.', 'base_price' => 7, 'price_unit' => 'm2', 'minimum_price' => 150, 'discount' => 0, 'requires_quote' => false, 'order' => 10 ),
@@ -232,6 +237,7 @@ class CMCalc_Seeder {
                 'discount' => 0,
                 'requires_quote' => false,
                 'order' => 11,
+                'icon' => 'roof',
                 'sub_options' => array(
                     array(
                         'type' => 'checkbox',
@@ -241,7 +247,7 @@ class CMCalc_Seeder {
                 ),
             ),
             array( 'title' => 'Opritten reinigen', 'excerpt' => 'Uw oprit weer als nieuw.', 'base_price' => 6, 'price_unit' => 'm2', 'minimum_price' => 125, 'discount' => 0, 'requires_quote' => false, 'order' => 12 ),
-            array( 'title' => 'Voorrijkosten', 'excerpt' => 'Kilometervergoeding voor locaties buiten het gratis bereik.', 'base_price' => 0.50, 'price_unit' => 'km', 'minimum_price' => 0, 'discount' => 0, 'requires_quote' => false, 'order' => 99, 'free_km' => 20 ),
+            array( 'title' => 'Voorrijkosten', 'excerpt' => 'Kilometervergoeding voor locaties buiten het gratis bereik.', 'base_price' => 0.50, 'price_unit' => 'km', 'minimum_price' => 0, 'discount' => 0, 'requires_quote' => false, 'order' => 99, 'free_km' => 20, 'icon' => 'car' ),
         );
     }
 }

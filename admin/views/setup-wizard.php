@@ -370,6 +370,54 @@ $existing_diensten = get_posts( array( 'post_type' => 'dienst', 'posts_per_page'
             color: #2d3436;
         }
 
+        /* Color Preview */
+        .cmcalc-color-preview {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 16px;
+            max-width: 300px;
+        }
+        .cmcalc-color-preview__header {
+            padding: 16px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .cmcalc-color-preview__card {
+            padding: 16px;
+            background: #fff;
+        }
+        .cmcalc-color-preview__service {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+        .cmcalc-color-preview__dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .cmcalc-color-preview__price {
+            margin-left: auto;
+            font-weight: 700;
+        }
+        .cmcalc-color-preview__btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
         /* Footer */
         .cmcalc-wizard-footer {
             display: flex;
@@ -556,7 +604,9 @@ $existing_diensten = get_posts( array( 'post_type' => 'dienst', 'posts_per_page'
 
             <div class="cmcalc-wiz-presets" id="wizPresets">
                 <?php foreach ( $presets as $key => $preset ) : ?>
-                <div class="cmcalc-wiz-preset <?php echo $key === 'default' ? 'selected' : ''; ?>" data-preset="<?php echo esc_attr( $key ); ?>">
+                <div class="cmcalc-wiz-preset <?php echo $key === 'default' ? 'selected' : ''; ?>" data-preset="<?php echo esc_attr( $key ); ?>"
+                     data-primary="<?php echo esc_attr( $preset['primary_color'] ); ?>"
+                     data-secondary="<?php echo esc_attr( $preset['secondary_color'] ); ?>">
                     <div class="cmcalc-wiz-preset-colors">
                         <span class="cmcalc-wiz-preset-swatch" style="background:<?php echo esc_attr( $preset['primary_color'] ); ?>;"></span>
                         <span class="cmcalc-wiz-preset-swatch" style="background:<?php echo esc_attr( $preset['secondary_color'] ); ?>;"></span>
@@ -568,6 +618,20 @@ $existing_diensten = get_posts( array( 'post_type' => 'dienst', 'posts_per_page'
                     ?></div>
                 </div>
                 <?php endforeach; ?>
+            </div>
+
+            <div class="cmcalc-color-preview" id="cmcalcColorPreview">
+                <div class="cmcalc-color-preview__header" id="cmcalcPreviewHeader" style="background:#1B2A4A;">
+                    <span>Voorbeeld</span>
+                </div>
+                <div class="cmcalc-color-preview__card" id="cmcalcPreviewCard">
+                    <div class="cmcalc-color-preview__service">
+                        <span class="cmcalc-color-preview__dot" id="cmcalcPreviewDot" style="background:#1B2A4A;"></span>
+                        <span>Glasbewassing</span>
+                        <span class="cmcalc-color-preview__price" id="cmcalcPreviewPrice" style="color:#1B2A4A;">&euro;3,50</span>
+                    </div>
+                    <button class="cmcalc-color-preview__btn" id="cmcalcPreviewBtn" style="background:#1B2A4A;">Boek nu</button>
+                </div>
             </div>
         </div>
     </div>
@@ -725,10 +789,21 @@ jQuery(function($) {
         $('.cmcalc-wiz-dienst-check').prop('checked', this.checked);
     });
 
+    // Color preview update
+    function updateColorPreview(primary, secondary) {
+        $('#cmcalcPreviewHeader').css('background', primary);
+        $('#cmcalcPreviewDot').css('background', primary);
+        $('#cmcalcPreviewPrice').css('color', primary);
+        $('#cmcalcPreviewBtn').css('background', primary);
+    }
+
     // Presets
     $(document).on('click', '.cmcalc-wiz-preset', function() {
         $('.cmcalc-wiz-preset').removeClass('selected');
         $(this).addClass('selected');
+        var primary = $(this).data('primary');
+        var secondary = $(this).data('secondary');
+        if (primary) updateColorPreview(primary, secondary);
     });
 
     // Submit wizard

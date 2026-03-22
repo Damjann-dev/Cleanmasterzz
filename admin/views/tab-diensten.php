@@ -28,6 +28,7 @@ $unit_options = array(
                 <th class="cmcalc-col-drag"></th>
                 <th class="cmcalc-col-active">Actief</th>
                 <th class="cmcalc-col-title">Titel</th>
+                <th style="width:90px;">Icoon</th>
                 <th class="cmcalc-col-price">Basisprijs</th>
                 <th class="cmcalc-col-unit">Eenheid</th>
                 <th class="cmcalc-col-min">Min. prijs</th>
@@ -42,6 +43,7 @@ $unit_options = array(
             <?php foreach ( $diensten as $dienst ) :
                 $price_unit = get_post_meta( $dienst->ID, '_cm_price_unit', true ) ?: 'm2';
                 if ( $price_unit === 'km' ) continue; // Skip travel service
+                $icon         = get_post_meta( $dienst->ID, '_cm_icon', true );
                 $active       = get_post_meta( $dienst->ID, '_cm_active', true );
                 if ( $active === '' ) $active = '1';
                 $base_price   = get_post_meta( $dienst->ID, '_cm_base_price', true );
@@ -71,6 +73,21 @@ $unit_options = array(
                 </td>
                 <td class="cmcalc-col-title">
                     <input type="text" class="cmcalc-inline-edit" data-field="title" value="<?php echo esc_attr( $dienst->post_title ); ?>">
+                </td>
+                <td>
+                    <select class="cmcalc-dienst-field cmcalc-icon-select" data-field="icon" data-id="<?php echo $dienst->ID; ?>">
+                        <option value="">Geen</option>
+                        <option value="window" <?php selected($icon, 'window'); ?>>&#x1FA9F; Ramen</option>
+                        <option value="terrace" <?php selected($icon, 'terrace'); ?>>&#x1F3E1; Terras</option>
+                        <option value="facade" <?php selected($icon, 'facade'); ?>>&#x1F3E2; Gevel</option>
+                        <option value="pressure" <?php selected($icon, 'pressure'); ?>>&#x1F4A6; Hogedruk</option>
+                        <option value="solar" <?php selected($icon, 'solar'); ?>>&#x2600;&#xFE0F; Zonnepanelen</option>
+                        <option value="construction" <?php selected($icon, 'construction'); ?>>&#x1F3D7;&#xFE0F; Bouw</option>
+                        <option value="roof" <?php selected($icon, 'roof'); ?>>&#x1F3E0; Dak</option>
+                        <option value="clean" <?php selected($icon, 'clean'); ?>>&#x2728; Schoonmaak</option>
+                        <option value="car" <?php selected($icon, 'car'); ?>>&#x1F697; Voorrijden</option>
+                        <option value="custom" <?php selected($icon, 'custom'); ?>>&#x1F4DD; Anders</option>
+                    </select>
                 </td>
                 <td class="cmcalc-col-price">
                     <div class="cmcalc-input-prefix">&euro;</div>
