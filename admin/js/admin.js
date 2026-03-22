@@ -1343,6 +1343,20 @@
         $('#cmcalcEditAddress').val(currentBookingData.address);
         $('#cmcalcEditDate').val(currentBookingData.preferred_date);
         $('#cmcalcEditMessage').val(currentBookingData.message);
+
+        // Populate services for editing
+        var servicesHtml = '';
+        var services = currentBookingData.services || [];
+        if (typeof services === 'string') {
+            try { services = JSON.parse(services); } catch(e) { services = []; }
+        }
+        services.forEach(function(svc, idx) {
+            servicesHtml += buildEditServiceRow(svc, idx);
+        });
+        $('#cmcalcEditServices').html(servicesHtml || '<p class="description">Geen diensten</p>');
+        $('#cmcalcEditTravel').val(currentBookingData.travel_surcharge || 0);
+        $('#cmcalcEditTotal').val(currentBookingData.total || 0);
+
         $('#cmcalcEditModal').show();
     });
 
@@ -1350,9 +1364,32 @@
         $(this).closest('.cmcalc-modal').hide();
     });
 
+    // Add/remove service rows in edit modal
+    $(document).on('click', '#cmcalcEditAddService', function() {
+        var idx = $('#cmcalcEditServices .cmcalc-edit-service-row').length;
+        // Remove "Geen diensten" placeholder if present
+        $('#cmcalcEditServices .description').remove();
+        $('#cmcalcEditServices').append(buildEditServiceRow({name:'', quantity:1, unit:'stuks', subtotal:0}, idx));
+    });
+
+    $(document).on('click', '.cmcalc-edit-svc-remove', function() {
+        $(this).closest('.cmcalc-edit-service-row').remove();
+    });
+
     $(document).on('click', '#cmcalcSaveEdit', function() {
         var $btn = $(this);
         $btn.prop('disabled', true).text('Opslaan...');
+
+        // Collect edited services
+        var editedServices = [];
+        $('#cmcalcEditServices .cmcalc-edit-service-row').each(function() {
+            editedServices.push({
+                name: $(this).find('.cmcalc-edit-svc-name').val(),
+                quantity: parseFloat($(this).find('.cmcalc-edit-svc-qty').val()) || 1,
+                unit: $(this).find('.cmcalc-edit-svc-unit').val(),
+                subtotal: parseFloat($(this).find('.cmcalc-edit-svc-price').val()) || 0
+            });
+        });
 
         $.post(ajaxUrl, {
             action: 'cmcalc_update_booking',
@@ -1363,7 +1400,10 @@
             phone: $('#cmcalcEditPhone').val(),
             address: $('#cmcalcEditAddress').val(),
             date: $('#cmcalcEditDate').val(),
-            message: $('#cmcalcEditMessage').val()
+            message: $('#cmcalcEditMessage').val(),
+            services: JSON.stringify(editedServices),
+            travel_surcharge: $('#cmcalcEditTravel').val(),
+            total: $('#cmcalcEditTotal').val()
         }).done(function(res) {
             if (res.success) {
                 showToast('Boeking bijgewerkt!');
@@ -1554,7 +1594,126 @@
         });
     });
 
+    // ─── Calendar View ───
+
+    var calendarDate = new Date();
+    var allBookingsForCalendar = [];
+
+    $('.cmcalc-view-btn').on('click', function() {
+        $('.cmcalc-view-btn').removeClass('active');
+        $(this).addClass('active');
+        var view = $(this).data('view');
+        if (view === 'calendar') {
+            $('.cmcalc-table-wrap, .cmcalc-pagination').hide();
+            $('#cmcalcCalendarView').show();
+            loadAllBookingsForCalendar();
+        } else {
+            $('.cmcalc-table-wrap, .cmcalc-pagination').show();
+            $('#cmcalcCalendarView').hide();
+        }
+    });
+
+    $('.cmcalc-calendar-prev').on('click', function() {
+        calendarDate.setMonth(calendarDate.getMonth() - 1);
+        renderCalendar();
+    });
+    $('.cmcalc-calendar-next').on('click', function() {
+        calendarDate.setMonth(calendarDate.getMonth() + 1);
+        renderCalendar();
+    });
+
+    function loadAllBookingsForCalendar() {
+        $.post(ajaxUrl, {
+            action: 'cmcalc_get_bookings_page',
+            nonce: nonce,
+            status: $('#cmcalcBookingStatusFilter').val() || 'alle',
+            search: '',
+            date_from: '',
+            date_to: '',
+            bedrijf_id: $('#cmcalcBookingBedrijfFilter').val() || '',
+            page: 1,
+            per_page: 9999
+        }).done(function(res) {
+            if (res.success) {
+                allBookingsForCalendar = res.data.bookings || [];
+                renderCalendar();
+            }
+        });
+    }
+
+    function renderCalendar() {
+        var year = calendarDate.getFullYear();
+        var month = calendarDate.getMonth();
+        var months = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
+        $('#cmcalcCalendarMonth').text(months[month] + ' ' + year);
+
+        var firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+        firstDay = firstDay === 0 ? 6 : firstDay - 1; // Convert to Mon=0
+        var daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        var html = '<div class="cmcalc-calendar-weekdays">';
+        ['Ma','Di','Wo','Do','Vr','Za','Zo'].forEach(function(d) {
+            html += '<div class="cmcalc-calendar-weekday">' + d + '</div>';
+        });
+        html += '</div><div class="cmcalc-calendar-days">';
+
+        // Empty cells before first day
+        for (var i = 0; i < firstDay; i++) {
+            html += '<div class="cmcalc-calendar-day cmcalc-calendar-day--empty"></div>';
+        }
+
+        // Days
+        for (var d = 1; d <= daysInMonth; d++) {
+            var dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+            var dayBookings = allBookingsForCalendar.filter(function(b) {
+                return b.preferred_date === dateStr || (b.date && b.date.substring(0, 10) === dateStr);
+            });
+
+            var isToday = (new Date().toISOString().substring(0,10) === dateStr);
+            var classes = 'cmcalc-calendar-day';
+            if (isToday) classes += ' cmcalc-calendar-day--today';
+            if (dayBookings.length > 0) classes += ' cmcalc-calendar-day--has-bookings';
+
+            html += '<div class="' + classes + '" data-date="' + dateStr + '">';
+            html += '<span class="cmcalc-calendar-day-num">' + d + '</span>';
+
+            dayBookings.forEach(function(b) {
+                var statusClass = 'cmcalc-cal-status--' + (b.status || 'nieuw');
+                html += '<div class="cmcalc-calendar-event ' + statusClass + '" data-id="' + b.id + '">';
+                html += '<span class="cmcalc-cal-name">' + escAttr((b.name || '').substring(0,15)) + '</span>';
+                html += '</div>';
+            });
+
+            html += '</div>';
+        }
+
+        html += '</div>';
+        $('#cmcalcCalendarGrid').html(html);
+    }
+
+    // Click calendar event to open panel
+    $(document).on('click', '.cmcalc-calendar-event', function(e) {
+        e.stopPropagation();
+        var id = $(this).data('id');
+        if (id) openBookingPanel(id);
+    });
+
     // ─── Helpers ───
+
+    function buildEditServiceRow(svc, idx) {
+        var name = (typeof svc === 'object') ? (svc.name || svc.service || svc.title || '') : svc;
+        var qty = (typeof svc === 'object') ? (svc.quantity || svc.aantal || 1) : 1;
+        var unit = (typeof svc === 'object') ? (svc.unit || svc.eenheid || 'stuks') : 'stuks';
+        var price = (typeof svc === 'object') ? (svc.subtotal || svc.line_total || svc.price || 0) : 0;
+
+        return '<div class="cmcalc-edit-service-row" data-index="' + idx + '">' +
+            '<input type="text" class="cmcalc-edit-svc-name" value="' + escAttr(name) + '" placeholder="Dienst" style="flex:2;">' +
+            '<input type="number" class="cmcalc-edit-svc-qty" value="' + qty + '" min="1" step="1" style="width:70px;" placeholder="Aantal">' +
+            '<input type="text" class="cmcalc-edit-svc-unit" value="' + escAttr(unit) + '" style="width:80px;" placeholder="Eenheid">' +
+            '<input type="number" class="cmcalc-edit-svc-price" value="' + parseFloat(price).toFixed(2) + '" step="0.01" min="0" style="width:90px;" placeholder="Bedrag">' +
+            '<button type="button" class="button cmcalc-edit-svc-remove" title="Verwijderen">&times;</button>' +
+            '</div>';
+    }
 
     function escAttr(str) {
         if (!str) return '';

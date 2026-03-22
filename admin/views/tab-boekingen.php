@@ -34,6 +34,18 @@ $status_labels = array(
     <span class="cmcalc-booking-count" id="cmcalcBookingCount"></span>
 </div>
 
+<!-- View Toggle -->
+<div class="cmcalc-view-toggle">
+    <button type="button" class="cmcalc-view-btn active" data-view="table">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Lijst
+    </button>
+    <button type="button" class="cmcalc-view-btn" data-view="calendar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Kalender
+    </button>
+</div>
+
 <!-- Table -->
 <div class="cmcalc-table-wrap">
     <table class="cmcalc-table">
@@ -55,6 +67,16 @@ $status_labels = array(
 
 <!-- Pagination -->
 <div class="cmcalc-pagination" id="cmcalcPagination"></div>
+
+<!-- Calendar View -->
+<div id="cmcalcCalendarView" class="cmcalc-calendar" style="display:none;">
+    <div class="cmcalc-calendar-header">
+        <button type="button" class="button cmcalc-calendar-prev">&larr;</button>
+        <h3 class="cmcalc-calendar-month" id="cmcalcCalendarMonth"></h3>
+        <button type="button" class="button cmcalc-calendar-next">&rarr;</button>
+    </div>
+    <div class="cmcalc-calendar-grid" id="cmcalcCalendarGrid"></div>
+</div>
 
 <!-- Slide-in Detail Panel -->
 <div id="cmcalcBookingPanel" class="cmcalc-booking-panel">
@@ -245,6 +267,22 @@ $status_labels = array(
                 <div class="cmcalc-settings-field" style="grid-column: 1 / -1;">
                     <label for="cmcalcEditMessage">Bericht</label>
                     <textarea id="cmcalcEditMessage" rows="3" style="width:100%;"></textarea>
+                </div>
+                <!-- Diensten bewerken -->
+                <div class="cmcalc-settings-field" style="grid-column: 1 / -1;">
+                    <label>Diensten</label>
+                    <div id="cmcalcEditServices" class="cmcalc-edit-services"></div>
+                    <button type="button" class="button" id="cmcalcEditAddService" style="margin-top:8px;">
+                        <span class="dashicons dashicons-plus-alt2" style="vertical-align:middle;"></span> Dienst toevoegen
+                    </button>
+                </div>
+                <div class="cmcalc-settings-field">
+                    <label for="cmcalcEditTravel">Voorrijkosten (&euro;)</label>
+                    <input type="number" id="cmcalcEditTravel" step="0.01" min="0" class="regular-text" style="width:100%;">
+                </div>
+                <div class="cmcalc-settings-field">
+                    <label for="cmcalcEditTotal">Totaal (&euro;)</label>
+                    <input type="number" id="cmcalcEditTotal" step="0.01" min="0" class="regular-text" style="width:100%;">
                 </div>
             </div>
         </div>

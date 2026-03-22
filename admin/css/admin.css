@@ -2144,3 +2144,146 @@ a.cmcalc-panel-field-value:hover {
     padding: 14px 18px;
     font-size: 13px;
 }
+
+/* Edit service rows */
+.cmcalc-edit-service-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.cmcalc-edit-service-row input {
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+}
+.cmcalc-edit-svc-remove {
+    padding: 2px 8px !important;
+    min-height: 30px;
+    color: #dc3545;
+    border-color: #dc3545 !important;
+}
+.cmcalc-edit-services {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+/* View Toggle */
+.cmcalc-view-toggle {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: #f1f3f5;
+    padding: 4px;
+    border-radius: 8px;
+    width: fit-content;
+}
+.cmcalc-view-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #666;
+    transition: all 0.2s;
+}
+.cmcalc-view-btn.active {
+    background: #fff;
+    color: #333;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    font-weight: 600;
+}
+.cmcalc-view-btn:hover:not(.active) {
+    color: #333;
+}
+
+/* Calendar */
+.cmcalc-calendar {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    padding: 24px;
+}
+.cmcalc-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.cmcalc-calendar-month {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+.cmcalc-calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 4px;
+}
+.cmcalc-calendar-weekday {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6c757d;
+    padding: 8px 0;
+    text-transform: uppercase;
+}
+.cmcalc-calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+.cmcalc-calendar-day {
+    min-height: 90px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 6px;
+    background: #fafafa;
+    cursor: default;
+}
+.cmcalc-calendar-day--empty {
+    background: transparent;
+    border-color: transparent;
+}
+.cmcalc-calendar-day--today {
+    border-color: var(--cmcalc-primary, #0d9488);
+    background: rgba(13,148,136,0.03);
+}
+.cmcalc-calendar-day--has-bookings {
+    background: #fff;
+}
+.cmcalc-calendar-day-num {
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+    display: block;
+    margin-bottom: 4px;
+}
+.cmcalc-calendar-day--today .cmcalc-calendar-day-num {
+    color: var(--cmcalc-primary, #0d9488);
+}
+.cmcalc-calendar-event {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity 0.2s;
+}
+.cmcalc-calendar-event:hover {
+    opacity: 0.8;
+}
+.cmcalc-cal-status--nieuw { background: #e3f2fd; color: #1565c0; }
+.cmcalc-cal-status--bevestigd { background: #e8f5e9; color: #2e7d32; }
+.cmcalc-cal-status--gepland { background: #fff3e0; color: #e65100; }
+.cmcalc-cal-status--voltooid { background: #f3e5f5; color: #6a1b9a; }
+.cmcalc-cal-status--geannuleerd { background: #fce4ec; color: #c62828; }

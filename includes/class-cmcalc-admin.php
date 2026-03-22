@@ -560,6 +560,36 @@ class CMCalc_Admin {
             }
         }
 
+        // Update services if provided
+        if ( isset( $_POST['services'] ) ) {
+            $services = json_decode( stripslashes( $_POST['services'] ), true );
+            if ( is_array( $services ) ) {
+                // Sanitize each service
+                $clean_services = array();
+                foreach ( $services as $svc ) {
+                    $clean_services[] = array(
+                        'name'     => sanitize_text_field( $svc['name'] ?? '' ),
+                        'quantity' => floatval( $svc['quantity'] ?? 1 ),
+                        'unit'     => sanitize_text_field( $svc['unit'] ?? 'stuks' ),
+                        'subtotal' => floatval( $svc['subtotal'] ?? 0 ),
+                    );
+                }
+                update_post_meta( $post_id, '_cm_booking_services', wp_json_encode( $clean_services ) );
+
+                // Update legacy service summary
+                $service_names = wp_list_pluck( $clean_services, 'name' );
+                update_post_meta( $post_id, '_cm_booking_service', implode( ', ', $service_names ) );
+            }
+        }
+
+        if ( isset( $_POST['travel_surcharge'] ) ) {
+            update_post_meta( $post_id, '_cm_booking_travel_surcharge', floatval( $_POST['travel_surcharge'] ) );
+        }
+
+        if ( isset( $_POST['total'] ) ) {
+            update_post_meta( $post_id, '_cm_booking_total', floatval( $_POST['total'] ) );
+        }
+
         // Update post title if name changed
         if ( isset( $_POST['name'] ) ) {
             $service_summary = get_post_meta( $post_id, '_cm_booking_service', true );
