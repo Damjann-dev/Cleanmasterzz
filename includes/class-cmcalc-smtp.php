@@ -23,10 +23,11 @@ class CMCalc_SMTP {
         }
 
         $phpmailer->isSMTP();
-        $phpmailer->Host       = $s['host'];
-        $phpmailer->Port       = intval( $s['port'] );
-        $phpmailer->SMTPAuth   = ! empty( $s['username'] ) && ! empty( $s['password'] );
-        $phpmailer->SMTPSecure = $s['encryption']; // 'ssl', 'tls' of ''
+        $phpmailer->Host        = $s['host'];
+        $phpmailer->Port        = intval( $s['port'] );
+        $phpmailer->SMTPAuth    = ! empty( $s['username'] ) && ! empty( $s['password'] );
+        $phpmailer->SMTPSecure  = $s['encryption']; // 'ssl', 'tls' of ''
+        $phpmailer->SMTPTimeout = 15; // max 15 seconden wachten
 
         if ( $phpmailer->SMTPAuth ) {
             $phpmailer->Username = $s['username'];
@@ -140,23 +141,51 @@ class CMCalc_SMTP {
 
     /**
      * Stuur een testmail via de geconfigureerde SMTP.
+     * Geeft bij falen een array terug met 'error' sleutel en diagnosehints.
      */
     public static function send_test_email( $to ) {
-        $settings = self::get_settings();
-        $site     = get_bloginfo( 'name' );
+        $settings  = self::get_settings();
+        $site      = get_bloginfo( 'name' );
+        $mail_error = null;
+
+        // Vang PHPMailer-fouten op via wp_mail_failed.
+        $listener = function( $wp_error ) use ( &$mail_error ) {
+            $mail_error = $wp_error->get_error_message();
+        };
+        add_action( 'wp_mail_failed', $listener );
 
         $headers = array( 'Content-Type: text/html; charset=UTF-8' );
         $subject = '[SMTP Test] ' . $site;
         $body    = '
 <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#f9f9f9;border-radius:12px;">
-    <h2 style="color:#1B2A4A;margin-bottom:12px;">✓ SMTP werkt correct</h2>
+    <h2 style="color:#1B2A4A;margin-bottom:12px;">&#x2713; SMTP werkt correct</h2>
     <p style="color:#555;">Deze testmail is verzonden via <strong>' . esc_html( $settings['host'] ) . ':' . intval( $settings['port'] ) . '</strong>.</p>
     <p style="color:#555;">Van: ' . esc_html( $settings['from_name'] ?: $site ) . ' &lt;' . esc_html( $settings['from_email'] ?: get_option( 'admin_email' ) ) . '&gt;</p>
     <hr style="border:none;border-top:1px solid #e0e0e0;margin:20px 0;">
     <p style="color:#999;font-size:12px;">Verzonden door de Cleanmasterzz Calculator plugin.</p>
 </div>';
 
-        return wp_mail( $to, $subject, $body, $headers );
+        $result = wp_mail( $to, $subject, $body, $headers );
+
+        remove_action( 'wp_mail_failed', $listener );
+
+        if ( $result ) {
+            return true;
+        }
+
+        // Bouw diagnose-hint op bij verbindingsfout.
+        $hint = '';
+        if ( $mail_error && strpos( $mail_error, '10060' ) !== false ) {
+            $hint = 'Foutcode 10060 betekent dat de server geen verbinding kon maken met ' . esc_html( $settings['host'] ) . ' op poort ' . intval( $settings['port'] ) . '. '
+                  . 'Mogelijke oorzaken: (1) uw hostingprovider blokkeert uitgaande SMTP-verbindingen, '
+                  . '(2) verkeerd host of poortnummer, (3) firewall. '
+                  . 'Controleer bij uw host of poort ' . intval( $settings['port'] ) . ' open staat voor uitgaande verbindingen.';
+        }
+
+        return array(
+            'error' => $mail_error ?: 'Onbekende fout',
+            'hint'  => $hint,
+        );
     }
 
     /**
