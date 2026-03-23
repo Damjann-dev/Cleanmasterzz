@@ -1813,4 +1813,111 @@
         saveSettings({ whatsapp_number: $('#cmcalcWhatsApp').val().trim() }, '#cmcalcWhatsAppStatus');
     });
 
+    // ─── SMTP ───
+
+    // Toggle SMTP velden actief/inactief
+    $('#cmcalcSmtpEnabled').on('change', function() {
+        var enabled = $(this).is(':checked');
+        $('#cmcalcSmtpFields').css({ opacity: enabled ? '1' : '.5', 'pointer-events': enabled ? '' : 'none' });
+    });
+
+    // Auto-selecteer poort bij wijzigen encryptie
+    $('#cmcalcSmtpEncryption').on('change', function() {
+        var enc = $(this).val();
+        var portMap = { tls: 587, ssl: 465, '': 25 };
+        if (portMap[enc] !== undefined) {
+            $('#cmcalcSmtpPort').val(portMap[enc]);
+        }
+    });
+
+    $('#cmcalcSaveSmtp').on('click', function() {
+        var $btn = $(this);
+        var $status = $('#cmcalcSmtpStatus');
+        $btn.prop('disabled', true).text('Opslaan...');
+
+        var smtp = {
+            enabled:    $('#cmcalcSmtpEnabled').is(':checked') ? '1' : '0',
+            host:       $('#cmcalcSmtpHost').val().trim(),
+            port:       $('#cmcalcSmtpPort').val(),
+            encryption: $('#cmcalcSmtpEncryption').val(),
+            username:   $('#cmcalcSmtpUsername').val().trim(),
+            password:   $('#cmcalcSmtpPassword').val(),
+            from_name:  $('#cmcalcSmtpFromName').val().trim(),
+            from_email: $('#cmcalcSmtpFromEmail').val().trim()
+        };
+
+        $.post(ajaxUrl, {
+            action: 'cmcalc_save_smtp',
+            nonce:  nonce,
+            smtp:   JSON.stringify(smtp)
+        }).done(function(res) {
+            if (res.success) {
+                $status.text('Opgeslagen ✓').css('color', '#28a745').show();
+                // Vervang wachtwoord placeholder
+                if ($('#cmcalcSmtpPassword').val()) {
+                    $('#cmcalcSmtpPassword').val('••••••••').attr('placeholder', 'Huidig wachtwoord verborgen — vul in om te wijzigen');
+                }
+                showToast('SMTP-instellingen opgeslagen');
+            } else {
+                $status.text('Fout bij opslaan').css('color', '#dc3545').show();
+            }
+        }).fail(function() {
+            $status.text('Verbinding mislukt').css('color', '#dc3545').show();
+        }).always(function() {
+            $btn.prop('disabled', false).text('Opslaan');
+            setTimeout(function() { $status.fadeOut(); }, 3500);
+        });
+    });
+
+    $('#cmcalcTestSmtp').on('click', function() {
+        var $btn    = $(this);
+        var $result = $('#cmcalcSmtpTestResult');
+        var to = prompt('Testmail versturen naar:', $('#cmcalcAdminEmail').val() || '');
+        if (!to) return;
+
+        $btn.prop('disabled', true).text('Versturen...');
+        $result.hide();
+
+        $.post(ajaxUrl, {
+            action: 'cmcalc_test_smtp',
+            nonce:  nonce,
+            to:     to
+        }).done(function(res) {
+            if (res.success) {
+                $result.text('✓ ' + (res.data.message || 'Testmail verzonden!')).css({ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0' }).show();
+            } else {
+                var msg = res.data && res.data.message ? res.data.message : (res.data || 'Onbekende fout');
+                $result.text('✗ ' + msg).css({ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }).show();
+            }
+        }).fail(function() {
+            $result.text('Verbindingsfout').css({ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }).show();
+        }).always(function() {
+            $btn.prop('disabled', false).text('📨 Testmail versturen');
+        });
+    });
+
+    // ─── Klantportaal pagina ───
+
+    $('#cmcalcSavePortalPage').on('click', function() {
+        var $btn    = $(this);
+        var $status = $('#cmcalcPortalStatus');
+        $btn.prop('disabled', true).text('Opslaan...');
+
+        $.post(ajaxUrl, {
+            action:  'cmcalc_save_portal_page',
+            nonce:   nonce,
+            page_id: $('#cmcalcPortalPage').val()
+        }).done(function(res) {
+            if (res.success) {
+                $status.text('Opgeslagen ✓').css('color', '#28a745').show();
+                showToast('Portaalpagina opgeslagen');
+            } else {
+                $status.text('Fout').css('color', '#dc3545').show();
+            }
+        }).always(function() {
+            $btn.prop('disabled', false).text('Opslaan');
+            setTimeout(function() { $status.fadeOut(); }, 3000);
+        });
+    });
+
 })(jQuery);

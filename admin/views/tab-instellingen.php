@@ -1,9 +1,14 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-$settings = CMCalc_Admin::get_settings();
-$travel = CMCalc_Admin::get_travel_service();
+$settings   = CMCalc_Admin::get_settings();
+$smtp       = CMCalc_SMTP::get_safe_settings();
+$travel     = CMCalc_Admin::get_travel_service();
 $travel_price = $travel ? get_post_meta( $travel->ID, '_cm_base_price', true ) : '0.50';
+
+// Portaalpagina opties
+$pages = get_pages();
+$portal_page_id = intval( get_option( 'cmcalc_portal_page_id' ) );
 ?>
 
 <div class="cmcalc-settings-grid">
@@ -221,6 +226,102 @@ $travel_price = $travel ? get_post_meta( $travel->ID, '_cm_base_price', true ) :
             <div class="cmcalc-modal-body" style="padding:0;overflow:auto;max-height:calc(90vh - 120px);">
                 <iframe id="cmcalcEmailPreviewFrame" style="width:100%;min-height:600px;border:none;"></iframe>
             </div>
+        </div>
+    </div>
+
+    <!-- ── SMTP ───────────────────────────────────────────────────────────── -->
+    <div class="cmcalc-settings-card" style="grid-column: 1 / -1;">
+        <div class="cmcalc-settings-card-icon" style="background: linear-gradient(135deg, #0ea5e9, #6366f1);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.7a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <h3>SMTP mailserver</h3>
+        <p class="description">Verzendt e-mails via uw eigen mailserver. Wachtwoord wordt versleuteld opgeslagen.</p>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;">
+                <div class="cmcalc-toggle" style="margin:0;">
+                    <input type="checkbox" id="cmcalcSmtpEnabled" <?php checked( $smtp['enabled'] ); ?>>
+                    <span class="cmcalc-toggle-slider"></span>
+                </div>
+                SMTP ingeschakeld
+            </label>
+            <span id="cmcalcSmtpStatus" class="cmcalc-save-status"></span>
+        </div>
+
+        <div id="cmcalcSmtpFields" class="cmcalc-settings-fields-grid" style="<?php echo $smtp['enabled'] ? '' : 'opacity:.5;pointer-events:none;'; ?>">
+            <div class="cmcalc-settings-field">
+                <label for="cmcalcSmtpHost">SMTP host</label>
+                <input type="text" id="cmcalcSmtpHost" value="<?php echo esc_attr( $smtp['host'] ); ?>" class="regular-text" placeholder="mailout.hostnet.nl">
+            </div>
+
+            <div class="cmcalc-settings-field">
+                <label for="cmcalcSmtpPort">Poort</label>
+                <div class="cmcalc-input-group">
+                    <input type="number" id="cmcalcSmtpPort" value="<?php echo esc_attr( $smtp['port'] ); ?>" style="width:90px;" min="1" max="65535">
+                    <select id="cmcalcSmtpEncryption" style="margin-left:8px;">
+                        <option value="tls" <?php selected( $smtp['encryption'], 'tls' ); ?>>STARTTLS (587)</option>
+                        <option value="ssl" <?php selected( $smtp['encryption'], 'ssl' ); ?>>SSL/TLS (465)</option>
+                        <option value=""   <?php selected( $smtp['encryption'], '' ); ?>>Geen (25)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="cmcalc-settings-field">
+                <label for="cmcalcSmtpUsername">Gebruikersnaam (e-mailadres)</label>
+                <input type="text" id="cmcalcSmtpUsername" value="<?php echo esc_attr( $smtp['username'] ); ?>" class="regular-text" autocomplete="off" placeholder="info@uwbedrijf.nl">
+            </div>
+
+            <div class="cmcalc-settings-field">
+                <label for="cmcalcSmtpPassword">Wachtwoord</label>
+                <input type="password" id="cmcalcSmtpPassword" value="<?php echo esc_attr( $smtp['password'] ); ?>" class="regular-text" autocomplete="new-password" placeholder="<?php echo $smtp['password'] ? 'Huidig wachtwoord verborgen — vul in om te wijzigen' : 'Wachtwoord'; ?>">
+            </div>
+
+            <div class="cmcalc-settings-field">
+                <label for="cmcalcSmtpFromName">Afzendernaam</label>
+                <input type="text" id="cmcalcSmtpFromName" value="<?php echo esc_attr( $smtp['from_name'] ); ?>" class="regular-text" placeholder="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+            </div>
+
+            <div class="cmcalc-settings-field">
+                <label for="cmcalcSmtpFromEmail">Afzender e-mailadres</label>
+                <input type="email" id="cmcalcSmtpFromEmail" value="<?php echo esc_attr( $smtp['from_email'] ); ?>" class="regular-text" placeholder="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>">
+            </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:18px;align-items:center;flex-wrap:wrap;">
+            <button type="button" class="button cmcalc-btn-primary" id="cmcalcSaveSmtp">Opslaan</button>
+            <button type="button" class="button" id="cmcalcTestSmtp">📨 Testmail versturen</button>
+        </div>
+
+        <div id="cmcalcSmtpTestResult" style="display:none;margin-top:12px;padding:10px 14px;border-radius:8px;font-size:13px;"></div>
+    </div>
+
+    <!-- ── Klantportaal ───────────────────────────────────────────────────── -->
+    <div class="cmcalc-settings-card" style="grid-column: 1 / -1;">
+        <div class="cmcalc-settings-card-icon" style="background: linear-gradient(135deg, #f59e0b, #ec4899);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <h3>Klantportaal</h3>
+        <p class="description">Klanten kunnen via <code>[cmcalc_portal]</code> hun boeking bekijken. Koppel hieronder een pagina waarop die shortcode staat.</p>
+
+        <div class="cmcalc-settings-field" style="max-width:360px;margin-top:12px;">
+            <label for="cmcalcPortalPage">Portaalpagina</label>
+            <select id="cmcalcPortalPage">
+                <option value="">— Geen (link werkt op elke pagina) —</option>
+                <?php foreach ( $pages as $page ) : ?>
+                    <option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $portal_page_id, $page->ID ); ?>>
+                        <?php echo esc_html( $page->post_title ); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <p class="description" style="margin-top:8px;font-size:12px;">
+            Shortcode voor portaalpagina: <code>[cmcalc_portal]</code> &bull;
+            Boekingslinks worden automatisch meegestuurd in bevestigingsemails.
+        </p>
+
+        <div style="display:flex;gap:10px;margin-top:18px;align-items:center;">
+            <button type="button" class="button cmcalc-btn-primary" id="cmcalcSavePortalPage">Opslaan</button>
+            <span class="cmcalc-save-status" id="cmcalcPortalStatus"></span>
         </div>
     </div>
 

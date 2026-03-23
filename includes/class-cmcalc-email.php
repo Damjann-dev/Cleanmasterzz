@@ -175,6 +175,22 @@ class CMCalc_Email {
         // Footer text
         $footer_tekst = $settings['email_footer_text'] ?? 'Heeft u vragen? Neem gerust contact met ons op.';
 
+        // Portaallink voor klantbevestiging
+        $portal_knop_html = '';
+        if ( $type === 'customer' ) {
+            $portal_url = CMCalc_Portal::get_portal_url( $booking_id );
+            if ( $portal_url ) {
+                $portal_knop_html = '
+<div style="text-align:center;margin:28px 0 8px;">
+    <a href="' . esc_url( $portal_url ) . '"
+       style="display:inline-block;padding:14px 28px;background:' . esc_attr( $primary_color ) . ';color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;font-family:Arial,sans-serif;">
+        &#128203; Bekijk uw boeking online
+    </a>
+    <p style="color:#6c757d;font-size:12px;margin-top:10px;font-family:Arial,sans-serif;">Via deze persoonlijke link kunt u altijd de status van uw boeking inzien.</p>
+</div>';
+            }
+        }
+
         // Intro text
         if ( $type === 'customer' ) {
             $header_titel = 'Bedankt voor uw boeking!';
@@ -182,6 +198,7 @@ class CMCalc_Email {
         } else {
             $header_titel = 'Nieuwe boeking ontvangen';
             $intro_tekst  = 'Er is een nieuwe boeking binnengekomen via de prijscalculator.';
+            $portal_knop_html = '';
         }
 
         // Load template
@@ -207,6 +224,7 @@ class CMCalc_Email {
             '{footer_tekst}'     => esc_html( $footer_tekst ),
             '{bedrijf_naam}'     => esc_html( $bedrijf_naam ?: get_bloginfo( 'name' ) ),
             '{onderwerp}'        => 'Boeking',
+            '{portal_knop}'      => $portal_knop_html,
         );
 
         return str_replace( array_keys( $replacements ), array_values( $replacements ), $template );
@@ -348,6 +366,7 @@ class CMCalc_Email {
             '{footer_tekst}'      => esc_html( $footer_tekst ),
             '{bedrijf_naam}'      => esc_html( get_bloginfo( 'name' ) ),
             '{onderwerp}'         => 'Preview',
+            '{portal_knop}'       => '',
         );
 
         return str_replace( array_keys( $replacements ), array_values( $replacements ), $template );
