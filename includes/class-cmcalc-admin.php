@@ -43,6 +43,9 @@ class CMCalc_Admin {
             'cmcalc_save_discount_code',
             'cmcalc_get_discount_codes',
             'cmcalc_delete_discount_code',
+            'cmcalc_save_smtp',
+            'cmcalc_test_smtp',
+            'cmcalc_save_portal_page',
         );
         foreach ( $ajax_actions as $action ) {
             add_action( 'wp_ajax_' . $action, array( __CLASS__, 'handle_' . $action ) );
@@ -1428,5 +1431,54 @@ class CMCalc_Admin {
             'remote_version'   => $best_version,
             'update_available' => $update_available,
         ) );
+    }
+
+    // ─── AJAX: SMTP ───────────────────────────────────────────────────────────
+
+    public static function handle_cmcalc_save_smtp() {
+        check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
+        if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Geen toegang' );
+
+        $raw  = wp_unslash( $_POST['smtp'] ?? '{}' );
+        $data = json_decode( $raw, true );
+        if ( ! is_array( $data ) ) wp_send_json_error( 'Ongeldige data' );
+
+        $saved = CMCalc_SMTP::save_settings( $data );
+
+        wp_send_json_success( CMCalc_SMTP::get_safe_settings() );
+    }
+
+    public static function handle_cmcalc_test_smtp() {
+        check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
+        if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Geen toegang' );
+
+        $to = sanitize_email( $_POST['to'] ?? get_option( 'admin_email' ) );
+        if ( ! is_email( $to ) ) wp_send_json_error( 'Ongeldig e-mailadres' );
+
+        $result = CMCalc_SMTP::send_test_email( $to );
+
+        if ( $result ) {
+            wp_send_json_success( array( 'message' => 'Testmail verzonden naar ' . $to ) );
+        } else {
+            global $phpmailer;
+            $error = is_object( $phpmailer ) ? $phpmailer->ErrorInfo : 'Onbekende fout';
+            wp_send_json_error( array( 'message' => 'Verzenden mislukt: ' . $error ) );
+        }
+    }
+
+    // ─── AJAX: Portaal pagina ─────────────────────────────────────────────────
+
+    public static function handle_cmcalc_save_portal_page() {
+        check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
+        if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Geen toegang' );
+
+        $page_id = intval( $_POST['page_id'] ?? 0 );
+        if ( $page_id > 0 ) {
+            update_option( 'cmcalc_portal_page_id', $page_id );
+        } else {
+            delete_option( 'cmcalc_portal_page_id' );
+        }
+
+        wp_send_json_success();
     }
 }

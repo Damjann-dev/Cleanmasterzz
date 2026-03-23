@@ -12,13 +12,15 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'CMCALC_VERSION', '1.0.5-beta' );
+define( 'CMCALC_VERSION', '1.1.0' );
 define( 'CMCALC_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CMCALC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 // Includes
 require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-post-types.php';
 require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-meta-boxes.php';
+require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-smtp.php';
+require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-portal.php';
 require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-rest-api.php';
 require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-shortcode.php';
 require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-seeder.php';
@@ -30,6 +32,8 @@ require_once CMCALC_PLUGIN_DIR . 'includes/class-cmcalc-updater.php';
 add_action( 'init', array( 'CMCalc_Post_Types', 'register' ), 5 );
 add_action( 'rest_api_init', array( 'CMCalc_REST_API', 'register_routes' ) );
 add_action( 'init', array( 'CMCalc_Shortcode', 'register' ) );
+add_action( 'init', array( 'CMCalc_Portal', 'register' ) );
+CMCalc_SMTP::init();
 
 if ( is_admin() ) {
     CMCalc_Admin::init();

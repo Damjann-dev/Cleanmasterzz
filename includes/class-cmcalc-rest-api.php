@@ -339,14 +339,95 @@ class CMCalc_REST_API {
     }
 
     /**
+     * Eenvoudige IP-gebaseerde rate limiting via WordPress transients.
+     */
+    private static function check_rate_limit( $action, $max_per_hour ) {
+        $ip  = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
+        $key = 'cmcalc_rl_' . $action . '_' . md5( $ip );
+        $hits = intval( get_transient( $key ) );
+
+        if ( $hits >= $max_per_hour ) {
+            return false;
+        }
+
+        if ( $hits === 0 ) {
+            set_transient( $key, 1, HOUR_IN_SECONDS );
+        } else {
+            set_transient( $key, $hits + 1, HOUR_IN_SECONDS );
+        }
+
+        return true;
+    }
+
+    /**
+     * Herbereken de prijs server-side voor een dienst (veiligheidsvalidatie).
+     * Gebruikt dezelfde staffellogica als do_calculation().
+     */
+    private static function server_recalculate_line_total( $service_id, $quantity ) {
+        if ( ! $service_id || $quantity <= 0 ) {
+            return null;
+        }
+
+        $price_unit     = get_post_meta( $service_id, '_cm_price_unit', true ) ?: 'm2';
+        $base_price     = floatval( get_post_meta( $service_id, '_cm_base_price', true ) );
+        $minimum_price  = floatval( get_post_meta( $service_id, '_cm_minimum_price', true ) );
+        $discount_pct   = intval( get_post_meta( $service_id, '_cm_discount_percent', true ) );
+        $requires_quote = get_post_meta( $service_id, '_cm_requires_quote', true ) === '1';
+
+        if ( $requires_quote ) {
+            return 0;
+        }
+
+        $volume_tiers = json_decode( get_post_meta( $service_id, '_cm_volume_tiers', true ) ?: '[]', true );
+        if ( ! is_array( $volume_tiers ) ) {
+            $volume_tiers = array();
+        }
+
+        $subtotal = 0;
+        if ( ! empty( $volume_tiers ) ) {
+            $remaining = $quantity;
+            foreach ( $volume_tiers as $tier ) {
+                if ( $remaining <= 0 ) break;
+                $tier_min   = floatval( $tier['min'] );
+                $tier_max   = floatval( $tier['max'] );
+                $tier_price = floatval( $tier['price'] );
+                $tier_size  = $tier_max - $tier_min + 1;
+                $in_tier    = min( $remaining, $tier_size );
+                $subtotal  += $in_tier * $tier_price;
+                $remaining -= $in_tier;
+            }
+            if ( $remaining > 0 ) {
+                $last_price = floatval( $volume_tiers[ count( $volume_tiers ) - 1 ]['price'] );
+                $subtotal  += $remaining * $last_price;
+            }
+        } else {
+            $subtotal = $base_price * $quantity;
+        }
+
+        if ( $minimum_price > 0 && $subtotal < $minimum_price ) {
+            $subtotal = $minimum_price;
+        }
+
+        if ( $discount_pct > 0 ) {
+            $subtotal -= $subtotal * ( $discount_pct / 100 );
+        }
+
+        return round( $subtotal, 2 );
+    }
+
+    /**
      * Submit a booking
      */
     public static function submit_booking( $request ) {
+        // Rate limiting: max 8 boekingen per uur per IP
+        if ( ! self::check_rate_limit( 'booking', 8 ) ) {
+            return new WP_Error( 'rate_limit', 'Te veel verzoeken. Probeer het later opnieuw.', array( 'status' => 429 ) );
+        }
+
         $name               = sanitize_text_field( $request->get_param( 'name' ) );
         $email              = sanitize_email( $request->get_param( 'email' ) );
         $phone              = sanitize_text_field( $request->get_param( 'phone' ) );
         $address            = sanitize_text_field( $request->get_param( 'address' ) );
-        $total              = floatval( $request->get_param( 'total' ) );
         $date               = sanitize_text_field( $request->get_param( 'preferred_date' ) );
         $message            = sanitize_textarea_field( $request->get_param( 'message' ) );
         $services           = $request->get_param( 'services' );
@@ -361,17 +442,37 @@ class CMCalc_REST_API {
             return new WP_Error( 'missing_fields', 'Naam en e-mailadres zijn verplicht', array( 'status' => 400 ) );
         }
 
-        // Build services summary
-        $services_summary = '';
-        $services_data = array();
+        // ── Server-side prijsberekening (beveiligingsfix) ──────────────────────
+        // De client-submitted totaalprijs wordt NIET vertrouwd.
+        // We herberekenen elke regelprijs op basis van de service-ID + hoeveelheid.
+        $services_summary    = '';
+        $services_data       = array();
+        $server_services_total = 0;
+        $has_quote_service   = false;
+
         if ( ! empty( $services ) && is_array( $services ) ) {
             foreach ( $services as $s ) {
+                $service_id      = intval( $s['id'] ?? 0 );
+                $quantity        = floatval( $s['quantity'] ?? 0 );
+                $requires_quote  = ! empty( $s['requires_quote'] );
+
+                // Herbereken line_total server-side als service-ID beschikbaar
+                if ( $service_id > 0 && ! $requires_quote ) {
+                    $verified_line = self::server_recalculate_line_total( $service_id, $quantity );
+                    $line_total    = ( $verified_line !== null ) ? $verified_line : floatval( $s['line_total'] ?? 0 );
+                    $server_services_total += $line_total;
+                } else {
+                    $line_total = 0;
+                    if ( $requires_quote ) $has_quote_service = true;
+                }
+
                 $services_data[] = array(
+                    'id'             => $service_id,
                     'title'          => sanitize_text_field( $s['title'] ?? '' ),
-                    'quantity'       => floatval( $s['quantity'] ?? 0 ),
+                    'quantity'       => $quantity,
                     'unit'           => sanitize_text_field( $s['unit'] ?? '' ),
-                    'requires_quote' => ! empty( $s['requires_quote'] ),
-                    'line_total'     => floatval( $s['line_total'] ?? 0 ),
+                    'requires_quote' => $requires_quote,
+                    'line_total'     => $line_total,
                     'sub_options'    => isset( $s['sub_options'] ) ? array_map( 'sanitize_text_field', (array) $s['sub_options'] ) : array(),
                 );
                 $services_summary .= sanitize_text_field( $s['title'] ?? '' ) . ', ';
@@ -379,6 +480,32 @@ class CMCalc_REST_API {
             $services_summary = rtrim( $services_summary, ', ' );
         } else {
             $services_summary = $service_legacy;
+        }
+
+        // Totaal = server-berekende diensten + geverifieerde voorrijkosten
+        // Voorrijkosten valideren: max 200 km × hoogste km-prijs (bescherming)
+        $max_travel = 200 * 5.0; // sanity cap
+        $travel_surcharge = min( abs( $travel_surcharge ), $max_travel );
+        $total = round( $server_services_total + $travel_surcharge, 2 );
+
+        // Kortingscode toepassen op server-berekend totaal
+        $discount_code = strtoupper( sanitize_text_field( $request->get_param( 'discount_code' ) ) );
+        $discount_amount = 0;
+        if ( $discount_code ) {
+            $codes = get_option( 'cmcalc_discount_codes', array() );
+            foreach ( $codes as $c ) {
+                if ( $c['code'] !== $discount_code ) continue;
+                if ( ! $c['active'] ) break;
+                if ( $c['expires'] && strtotime( $c['expires'] ) < time() ) break;
+                if ( $c['max_uses'] > 0 && $c['used'] >= $c['max_uses'] ) break;
+                if ( $c['type'] === 'percentage' ) {
+                    $discount_amount = $total * ( floatval( $c['value'] ) / 100 );
+                } else {
+                    $discount_amount = min( floatval( $c['value'] ), $total );
+                }
+                break;
+            }
+            $total = round( max( 0, $total - $discount_amount ), 2 );
         }
 
         // Create booking post
@@ -392,7 +519,7 @@ class CMCalc_REST_API {
             return new WP_Error( 'booking_failed', 'Boeking kon niet worden opgeslagen', array( 'status' => 500 ) );
         }
 
-        // Save meta
+        // Save meta (totaal is server-berekend)
         update_post_meta( $booking_id, '_cm_booking_name', $name );
         update_post_meta( $booking_id, '_cm_booking_email', $email );
         update_post_meta( $booking_id, '_cm_booking_phone', $phone );
@@ -418,19 +545,21 @@ class CMCalc_REST_API {
         // Set default status
         update_post_meta( $booking_id, '_cm_booking_status', 'nieuw' );
 
-        // Increment discount code usage if applicable
-        $discount_code = sanitize_text_field( $request->get_param( 'discount_code' ) );
+        // Kortingscode gebruik verhogen
         if ( $discount_code ) {
             $codes = get_option( 'cmcalc_discount_codes', array() );
             foreach ( $codes as &$c ) {
-                if ( $c['code'] === strtoupper( $discount_code ) ) {
+                if ( $c['code'] === $discount_code ) {
                     $c['used'] = ( $c['used'] ?? 0 ) + 1;
                     break;
                 }
             }
             update_option( 'cmcalc_discount_codes', $codes );
-            update_post_meta( $booking_id, '_cm_discount_code', strtoupper( $discount_code ) );
+            update_post_meta( $booking_id, '_cm_discount_code', $discount_code );
         }
+
+        // Genereer uniek portaaltoken voor klantportaal
+        CMCalc_Portal::generate_token( $booking_id );
 
         // Send HTML emails
         CMCalc_Email::send_admin_notification( $booking_id );
@@ -561,6 +690,11 @@ class CMCalc_REST_API {
      * Validate a discount code (public endpoint)
      */
     public static function validate_discount_code( $request ) {
+        // Rate limiting: max 30 validaties per uur per IP (beschermt tegen brute-force)
+        if ( ! self::check_rate_limit( 'discount', 30 ) ) {
+            return new WP_REST_Response( array( 'valid' => false, 'message' => 'Te veel pogingen. Probeer later opnieuw.' ), 429 );
+        }
+
         $code = strtoupper( sanitize_text_field( $request->get_param( 'code' ) ) );
         $subtotal = floatval( $request->get_param( 'subtotal' ) );
 
