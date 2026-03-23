@@ -1,0 +1,58 @@
+name: Auto Release
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lees versienummer uit plugin
+        id: version
+        run: |
+          VERSION=$(grep -oP "define\(\s*'CMCALC_VERSION',\s*'\K[^']+" cleanmasterzz-calculator.php)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Gevonden versie: $VERSION"
+
+      - name: Controleer of release al bestaat
+        id: check
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ steps.version.outputs.version }}")
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "Release check HTTP status: $STATUS"
+
+      - name: Maak plugin ZIP aan
+        if: steps.check.outputs.status == '404'
+        run: |
+          mkdir -p build/cleanmasterzz-calculator
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='build' \
+            --exclude='*.zip' \
+            . build/cleanmasterzz-calculator/
+          cd build
+          zip -r ../cleanmasterzz-calculator.zip cleanmasterzz-calculator/
+          echo "ZIP aangemaakt: $(du -sh ../cleanmasterzz-calculator.zip | cut -f1)"
+
+      - name: Maak GitHub Release aan
+        if: steps.check.outputs.status == '404'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          body: |
+            Automatische release van versie ${{ steps.version.outputs.version }}.
+            Installeer via de WordPress plugin auto-updater.
+          files: cleanmasterzz-calculator.zip
+          generate_release_notes: false
