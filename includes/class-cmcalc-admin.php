@@ -46,6 +46,7 @@ class CMCalc_Admin {
             'cmcalc_save_smtp',
             'cmcalc_test_smtp',
             'cmcalc_save_portal_page',
+            'cmcalc_save_bedrijf_wizard',
         );
         foreach ( $ajax_actions as $action ) {
             add_action( 'wp_ajax_' . $action, array( __CLASS__, 'handle_' . $action ) );
@@ -1303,6 +1304,40 @@ class CMCalc_Admin {
             }
         }
 
+        // 5. Save email settings (stap 4 wizard)
+        if ( ! empty( $data['email'] ) && is_array( $data['email'] ) ) {
+            $current = self::get_settings();
+            $e = $data['email'];
+            if ( ! empty( $e['admin_email'] ) )
+                $current['admin_email'] = sanitize_email( $e['admin_email'] );
+            if ( ! empty( $e['email_subject'] ) )
+                $current['email_subject'] = sanitize_text_field( $e['email_subject'] );
+            if ( isset( $e['email_customer_enabled'] ) )
+                $current['email_customer_enabled'] = $e['email_customer_enabled'] === '1' ? '1' : '0';
+            if ( isset( $e['email_status_enabled'] ) )
+                $current['email_status_enabled'] = $e['email_status_enabled'] === '1' ? '1' : '0';
+            update_option( 'cmcalc_settings', $current );
+        }
+
+        // 6. Save BTW & travel (stap 5 wizard)
+        if ( ! empty( $data['btw'] ) && is_array( $data['btw'] ) ) {
+            $current = self::get_settings();
+            $btw = $data['btw'];
+            if ( isset( $btw['btw_percentage'] ) )
+                $current['btw_percentage'] = floatval( $btw['btw_percentage'] );
+            if ( ! empty( $btw['show_btw'] ) )
+                $current['show_btw'] = in_array( $btw['show_btw'], array( 'incl', 'excl' ) ) ? $btw['show_btw'] : 'incl';
+            update_option( 'cmcalc_settings', $current );
+
+            // Sla reiskosten op
+            if ( isset( $btw['travel_price'] ) ) {
+                $travel = self::get_travel_service();
+                if ( $travel ) {
+                    update_post_meta( $travel->ID, '_cm_base_price', floatval( $btw['travel_price'] ) );
+                }
+            }
+        }
+
         wp_send_json_success( array( 'bedrijf_id' => $bedrijf_id ) );
     }
 
@@ -1484,5 +1519,83 @@ class CMCalc_Admin {
         }
 
         wp_send_json_success();
+    }
+
+    // ─── AJAX: Bedrijf Setup Wizard (Premium) ────────────────────────────────
+
+    public static function handle_cmcalc_save_bedrijf_wizard() {
+        check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
+        if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Geen toegang' );
+
+        if ( ! CMCalc_License::has_feature( 'company_wizard' ) ) {
+            wp_send_json_error( 'Deze functie vereist een Pro of hoger licentie.' );
+        }
+
+        $data = json_decode( stripslashes( $_POST['wizard_data'] ?? '{}' ), true );
+        if ( empty( $data ) ) wp_send_json_error( 'Geen data ontvangen' );
+
+        $bedrijf_id = intval( $data['bedrijf_id'] ?? 0 );
+
+        // Stap 1: Werkgebieden koppelen/aanmaken
+        if ( ! empty( $data['werkgebieden'] ) && is_array( $data['werkgebieden'] ) ) {
+            foreach ( $data['werkgebieden'] as $wg ) {
+                $wg_id_exist = intval( $wg['id'] ?? 0 );
+                if ( $wg_id_exist ) {
+                    // Koppel bestaand werkgebied
+                    update_post_meta( $wg_id_exist, '_cmcalc_bedrijf_id', $bedrijf_id );
+                } else {
+                    // Nieuw werkgebied aanmaken
+                    $new_wg = wp_insert_post( array(
+                        'post_type'   => 'cm_werkgebied',
+                        'post_title'  => sanitize_text_field( $wg['name'] ?? '' ),
+                        'post_status' => 'publish',
+                    ) );
+                    if ( ! is_wp_error( $new_wg ) ) {
+                        update_post_meta( $new_wg, '_cmcalc_postcode', sanitize_text_field( $wg['postcode'] ?? '' ) );
+                        update_post_meta( $new_wg, '_cmcalc_lat', floatval( $wg['lat'] ?? 0 ) );
+                        update_post_meta( $new_wg, '_cmcalc_lon', floatval( $wg['lon'] ?? 0 ) );
+                        update_post_meta( $new_wg, '_cmcalc_free_km', intval( $wg['free_km'] ?? 20 ) );
+                        update_post_meta( $new_wg, '_cmcalc_active', '1' );
+                        update_post_meta( $new_wg, '_cmcalc_bedrijf_id', $bedrijf_id );
+                    }
+                }
+            }
+        }
+
+        // Stap 2: Diensten koppelen met evt. eigen prijzen
+        if ( ! empty( $data['diensten'] ) && is_array( $data['diensten'] ) ) {
+            foreach ( $data['diensten'] as $d ) {
+                $post_id = intval( $d['id'] ?? 0 );
+                if ( ! $post_id ) continue;
+
+                $ids = json_decode( get_post_meta( $post_id, '_cm_bedrijf_ids', true ), true );
+                if ( ! is_array( $ids ) ) $ids = array();
+                if ( ! in_array( $bedrijf_id, $ids ) ) {
+                    $ids[] = $bedrijf_id;
+                    update_post_meta( $post_id, '_cm_bedrijf_ids', wp_json_encode( $ids ) );
+                }
+
+                // Bedrijfsspecifieke prijs opslaan
+                if ( isset( $d['custom_price'] ) && $d['custom_price'] !== '' ) {
+                    $bedrijf_pricing = json_decode( get_post_meta( $post_id, '_cm_bedrijf_pricing', true ), true );
+                    if ( ! is_array( $bedrijf_pricing ) ) $bedrijf_pricing = array();
+                    $bedrijf_pricing[ $bedrijf_id ] = array( 'base_price' => floatval( $d['custom_price'] ) );
+                    update_post_meta( $post_id, '_cm_bedrijf_pricing', wp_json_encode( $bedrijf_pricing ) );
+                }
+            }
+        }
+
+        // Stap 3: Bedrijfskleuren (eigen stijl overschrijving)
+        if ( ! empty( $data['preset'] ) ) {
+            update_post_meta( $bedrijf_id, '_cm_bedrijf_preset', sanitize_text_field( $data['preset'] ) );
+        }
+        if ( ! empty( $data['primary_color'] ) ) {
+            update_post_meta( $bedrijf_id, '_cm_bedrijf_primary_color', sanitize_hex_color( $data['primary_color'] ) );
+        }
+
+        wp_send_json_success( array(
+            'message'    => 'Bedrijf wizard voltooid!',
+            'bedrijf_id' => $bedrijf_id,
+        ) );
     }
 }

@@ -477,6 +477,70 @@ $existing_diensten = get_posts( array( 'post_type' => 'dienst', 'posts_per_page'
             border-radius: 4px;
             font-weight: 600;
         }
+
+        /* Info box */
+        .cmcalc-wiz-info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #1e40af;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .cmcalc-wiz-info-box svg { flex-shrink: 0; margin-top: 1px; }
+
+        /* Premium grid step 7 */
+        .cmcalc-wiz-premium-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 4px;
+        }
+        .cmcalc-wiz-premium-card {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 18px;
+            position: relative;
+        }
+        .cmcalc-wiz-premium-card--boss {
+            border-color: #f59e0b;
+        }
+        .cmcalc-wiz-premium-popular {
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg,#f59e0b,#ec4899);
+            color: #fff; font-size: 10px; font-weight: 700;
+            padding: 3px 12px; border-radius: 10px; white-space: nowrap;
+        }
+        .cmcalc-wiz-premium-badge {
+            display: inline-block;
+            font-size: 10px; font-weight: 800; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 6px; margin-bottom: 8px;
+        }
+        .cmcalc-wiz-premium-card--pro .cmcalc-wiz-premium-badge {
+            background: linear-gradient(135deg,#3b82f6,#6366f1); color: #fff;
+        }
+        .cmcalc-wiz-premium-card--boss .cmcalc-wiz-premium-badge {
+            background: linear-gradient(135deg,#f59e0b,#ec4899); color: #fff;
+        }
+        .cmcalc-wiz-premium-card h4 {
+            margin: 0 0 2px; font-size: 15px; color: #1B2A4A;
+        }
+        .cmcalc-wiz-premium-card > p {
+            font-size: 12px; color: #6c757d; margin: 0 0 10px;
+        }
+        .cmcalc-wiz-premium-card ul {
+            list-style: none; padding: 0; margin: 0;
+            font-size: 12px; color: #475569;
+        }
+        .cmcalc-wiz-premium-card ul li {
+            padding: 3px 0 3px 18px; position: relative;
+        }
+        .cmcalc-wiz-premium-card ul li::before {
+            content: '✓'; position: absolute; left: 0; color: #10b981; font-weight: 700;
+        }
     </style>
 </head>
 <body class="cmcalc-wizard-body">
@@ -484,14 +548,17 @@ $existing_diensten = get_posts( array( 'post_type' => 'dienst', 'posts_per_page'
 <div class="cmcalc-wizard">
     <div class="cmcalc-wizard-header">
         <h1>Cleanmasterzz Calculator Setup</h1>
-        <p>Configureer uw calculator in 4 eenvoudige stappen</p>
+        <p>Configureer uw calculator in een paar eenvoudige stappen</p>
     </div>
 
     <div class="cmcalc-wizard-progress">
-        <span class="cmcalc-wizard-dot active" data-step="1">1</span>
-        <span class="cmcalc-wizard-dot" data-step="2">2</span>
-        <span class="cmcalc-wizard-dot" data-step="3">3</span>
-        <span class="cmcalc-wizard-dot" data-step="4">4</span>
+        <span class="cmcalc-wizard-dot active" data-step="1" title="Bedrijfsgegevens">1</span>
+        <span class="cmcalc-wizard-dot" data-step="2" title="Werkgebieden">2</span>
+        <span class="cmcalc-wizard-dot" data-step="3" title="Diensten">3</span>
+        <span class="cmcalc-wizard-dot" data-step="4" title="E-mail">4</span>
+        <span class="cmcalc-wizard-dot" data-step="5" title="BTW & Voorrijkosten">5</span>
+        <span class="cmcalc-wizard-dot" data-step="6" title="Stijl">6</span>
+        <span class="cmcalc-wizard-dot" data-step="7" title="Premium">7</span>
     </div>
 
     <div class="cmcalc-wizard-body">
@@ -597,8 +664,77 @@ $existing_diensten = get_posts( array( 'post_type' => 'dienst', 'posts_per_page'
             </div>
         </div>
 
-        <!-- Step 4: Stijl -->
+        <!-- Step 4: E-mail -->
         <div class="cmcalc-wizard-step" data-step="4">
+            <h2>E-mail instellingen</h2>
+            <p class="step-desc">Stel in naar welk adres boekingen worden gestuurd en of klanten een bevestiging ontvangen.</p>
+
+            <div class="cmcalc-wiz-field">
+                <label>Admin notificatie e-mail</label>
+                <input type="email" id="wizAdminEmail" placeholder="info@uwbedrijf.nl" value="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>">
+            </div>
+
+            <div class="cmcalc-wiz-field">
+                <label>E-mail onderwerp</label>
+                <input type="text" id="wizEmailSubject" placeholder="Nieuwe boeking via uw website" value="Nieuwe boeking">
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px;border:1.5px solid #e9ecef;border-radius:8px;">
+                    <input type="checkbox" id="wizEmailCustomer" checked style="width:18px;height:18px;accent-color:#1B2A4A;">
+                    <div>
+                        <div style="font-weight:600;font-size:13px;">Klantbevestiging sturen</div>
+                        <div style="font-size:12px;color:#6c757d;">Klant ontvangt automatisch een HTML-bevestiging</div>
+                    </div>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px;border:1.5px solid #e9ecef;border-radius:8px;">
+                    <input type="checkbox" id="wizEmailStatus" checked style="width:18px;height:18px;accent-color:#1B2A4A;">
+                    <div>
+                        <div style="font-weight:600;font-size:13px;">Statusupdate e-mails</div>
+                        <div style="font-size:12px;color:#6c757d;">Klant ontvangt e-mail bij statuswijziging</div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="cmcalc-wiz-info-box" style="margin-top:16px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                SMTP configuratie (eigen mailserver) kunt u later instellen onder <strong>Instellingen → Plugin Instellingen</strong>.
+            </div>
+        </div>
+
+        <!-- Step 5: BTW & Voorrijkosten -->
+        <div class="cmcalc-wizard-step" data-step="5">
+            <h2>BTW & Voorrijkosten</h2>
+            <p class="step-desc">Stel de BTW in en de reiskosten buiten het gratis bereik.</p>
+
+            <div class="cmcalc-wiz-row">
+                <div class="cmcalc-wiz-field">
+                    <label>BTW percentage (%)</label>
+                    <input type="number" id="wizBtwPercentage" value="21" step="0.1" min="0" max="100">
+                </div>
+                <div class="cmcalc-wiz-field">
+                    <label>Prijs per km (buiten gratis bereik)</label>
+                    <input type="number" id="wizTravelPrice" value="0.50" step="0.01" min="0" placeholder="€ per km">
+                </div>
+            </div>
+
+            <div class="cmcalc-wiz-field" style="margin-top:8px;">
+                <label>Prijzen tonen als</label>
+                <select id="wizShowBtw">
+                    <option value="incl">Inclusief BTW</option>
+                    <option value="excl">Exclusief BTW</option>
+                </select>
+            </div>
+
+            <div class="cmcalc-wiz-info-box" style="margin-top:16px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Het standaard BTW-percentage in Nederland is <strong>21%</strong> voor de meeste schoonmaakdiensten.
+                Bij particulieren geldt soms <strong>9%</strong> voor specifieke diensten.
+            </div>
+        </div>
+
+        <!-- Step 6: Stijl -->
+        <div class="cmcalc-wizard-step" data-step="6">
             <h2>Kies een stijl</h2>
             <p class="step-desc">Selecteer een kleurthema voor uw calculator. U kunt dit later altijd aanpassen.</p>
 
@@ -634,6 +770,44 @@ $existing_diensten = get_posts( array( 'post_type' => 'dienst', 'posts_per_page'
                 </div>
             </div>
         </div>
+
+        <!-- Step 7: Premium -->
+        <div class="cmcalc-wizard-step" data-step="7">
+            <h2>🎉 Setup bijna klaar!</h2>
+            <p class="step-desc">Uw calculator is geconfigureerd. Bekijk hieronder de premium functies die u kunt ontgrendelen.</p>
+
+            <div class="cmcalc-wiz-premium-grid">
+                <div class="cmcalc-wiz-premium-card cmcalc-wiz-premium-card--pro">
+                    <div class="cmcalc-wiz-premium-badge">PRO</div>
+                    <h4>Professional</h4>
+                    <p>€29/mnd of €249/jaar</p>
+                    <ul>
+                        <li>Bedrijf setup wizard</li>
+                        <li>Analytics dashboard</li>
+                        <li>PDF facturen</li>
+                        <li>Kalender & beschikbaarheid</li>
+                    </ul>
+                </div>
+                <div class="cmcalc-wiz-premium-card cmcalc-wiz-premium-card--boss">
+                    <div class="cmcalc-wiz-premium-popular">Meest gekozen</div>
+                    <div class="cmcalc-wiz-premium-badge">BOSS</div>
+                    <h4>Boss</h4>
+                    <p>€59/mnd of €499/jaar</p>
+                    <ul>
+                        <li>Alles van Pro</li>
+                        <li>Boss klantportaal + login</li>
+                        <li>Klantaccounts dashboard</li>
+                        <li>SMS notificaties</li>
+                        <li>Berichtensysteem</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="cmcalc-wiz-info-box" style="margin-top:20px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Heeft u al een licentiesleutel? U kunt deze activeren via <strong>Dashboard → Licentie</strong> na het voltooien van de setup.
+            </div>
+        </div>
     </div>
 
     <div class="cmcalc-wizard-footer">
@@ -648,7 +822,7 @@ $existing_diensten = get_posts( array( 'post_type' => 'dienst', 'posts_per_page'
 <script>
 jQuery(function($) {
     var currentStep = 1;
-    var totalSteps = 4;
+    var totalSteps = 7;
     var ajaxUrl = '<?php echo admin_url( "admin-ajax.php" ); ?>';
     var nonce = '<?php echo wp_create_nonce( "cmcalc_admin_nonce" ); ?>';
 
@@ -853,7 +1027,18 @@ jQuery(function($) {
             },
             werkgebieden: werkgebieden,
             diensten: diensten,
-            preset: preset
+            preset: preset,
+            email: {
+                admin_email:            $('#wizAdminEmail').val(),
+                email_subject:          $('#wizEmailSubject').val(),
+                email_customer_enabled: $('#wizEmailCustomer').is(':checked') ? '1' : '0',
+                email_status_enabled:   $('#wizEmailStatus').is(':checked') ? '1' : '0'
+            },
+            btw: {
+                btw_percentage: parseFloat($('#wizBtwPercentage').val()) || 21,
+                show_btw:       $('#wizShowBtw').val() || 'incl',
+                travel_price:   parseFloat($('#wizTravelPrice').val()) || 0.50
+            }
         };
 
         $.post(ajaxUrl, {
