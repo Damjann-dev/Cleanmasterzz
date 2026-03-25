@@ -1,8 +1,9 @@
-name: Auto Release
+name: Release Plugin
 
 on:
   push:
-    branches: [master]
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]*'
 
 jobs:
   release:
@@ -14,45 +15,46 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Lees versienummer uit plugin
+      - name: Get version from tag
         id: version
-        run: |
-          VERSION=$(grep -oP "define\(\s*'CMCALC_VERSION',\s*'\K[^']+" cleanmasterzz-calculator.php)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Gevonden versie: $VERSION"
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-      - name: Controleer of release al bestaat
-        id: check
+      - name: Create plugin ZIP
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ steps.version.outputs.version }}")
-          echo "status=$STATUS" >> $GITHUB_OUTPUT
-          echo "Release check HTTP status: $STATUS"
+          VERSION=${{ steps.version.outputs.VERSION }}
+          SLUG="cleanmasterzz-calculator"
+          mkdir -p build/${SLUG}
 
-      - name: Maak plugin ZIP aan
-        if: steps.check.outputs.status == '404'
-        run: |
-          mkdir -p build/cleanmasterzz-calculator
+          # Copy plugin files (combine excludes from both branches)
           rsync -av \
             --exclude='.git' \
             --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='website' \
+            --exclude='*.md' \
+            --exclude='.gitignore' \
             --exclude='build' \
             --exclude='*.zip' \
-            . build/cleanmasterzz-calculator/
-          cd build
-          zip -r ../cleanmasterzz-calculator.zip cleanmasterzz-calculator/
-          echo "ZIP aangemaakt: $(du -sh ../cleanmasterzz-calculator.zip | cut -f1)"
+            . build/${SLUG}/
 
-      - name: Maak GitHub Release aan
-        if: steps.check.outputs.status == '404'
+          # Create ZIP
+          cd build
+          zip -r ../${SLUG}-${VERSION}.zip ${SLUG}/
+          echo "ZIP created successfully."
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.version }}
-          name: v${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: "v${{ steps.version.outputs.VERSION }}"
           body: |
-            Automatische release van versie ${{ steps.version.outputs.version }}.
-            Installeer via de WordPress plugin auto-updater.
-          files: cleanmasterzz-calculator.zip
-          generate_release_notes: false
+            ## CleanMasterzz Calculator v${{ steps.version.outputs.VERSION }}
+
+            ### Installeren
+            1. Download `cleanmasterzz-calculator-${{ steps.version.outputs.VERSION }}.zip`
+            2. WordPress → Plugins → Nieuwe plugin → ZIP uploaden
+
+            **Of** via de automatische updater in uw WordPress dashboard.
+          files: cleanmasterzz-calculator-${{ steps.version.outputs.VERSION }}.zip
+          draft: false
+          prerelease: false
