@@ -1492,12 +1492,16 @@ class CMCalc_Admin {
 
         $result = CMCalc_SMTP::send_test_email( $to );
 
-        if ( $result ) {
+        if ( $result === true ) {
             wp_send_json_success( array( 'message' => 'Testmail verzonden naar ' . $to ) );
         } else {
-            global $phpmailer;
-            $error = is_object( $phpmailer ) ? $phpmailer->ErrorInfo : 'Onbekende fout';
-            wp_send_json_error( array( 'message' => 'Verzenden mislukt: ' . $error ) );
+            $error   = is_array( $result ) ? $result['error'] : 'Onbekende fout';
+            $hint    = is_array( $result ) ? ( $result['hint'] ?? '' ) : '';
+            $message = 'Verzenden mislukt: ' . $error;
+            if ( $hint ) {
+                $message .= "\n\n" . $hint;
+            }
+            wp_send_json_error( array( 'message' => $message ) );
         }
     }
 

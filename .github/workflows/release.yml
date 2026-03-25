@@ -5,12 +5,12 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]*'
 
-permissions:
-  contents: write
-
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,7 +25,7 @@ jobs:
           SLUG="cleanmasterzz-calculator"
           mkdir -p build/${SLUG}
 
-          # Copy plugin files (exclude dev files)
+          # Copy plugin files (combine excludes from both branches)
           rsync -av \
             --exclude='.git' \
             --exclude='.github' \
@@ -33,11 +33,14 @@ jobs:
             --exclude='website' \
             --exclude='*.md' \
             --exclude='.gitignore' \
+            --exclude='build' \
+            --exclude='*.zip' \
             . build/${SLUG}/
 
           # Create ZIP
           cd build
           zip -r ../${SLUG}-${VERSION}.zip ${SLUG}/
+          echo "ZIP created successfully."
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
