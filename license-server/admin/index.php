@@ -17,7 +17,7 @@ function is_logged_in() {
 
 function require_login() {
     if ( ! is_logged_in() ) {
-        header( 'Location: /admin/?action=login' );
+        header( 'Location: ' . ADMIN_BASE . '/?action=login' );
         exit;
     }
 }
@@ -76,7 +76,7 @@ if ( $action === 'login' ) {
             $_SESSION['ls_admin']      = true;
             $_SESSION['ls_admin_user'] = $user;
             session_regenerate_id( true );
-            header( 'Location: /admin/' );
+            header( 'Location: ' . ADMIN_BASE . '/' );
             exit;
         }
         $login_error = 'Onjuiste gebruikersnaam of wachtwoord.';
@@ -87,7 +87,7 @@ if ( $action === 'login' ) {
 
 if ( $action === 'logout' ) {
     session_destroy();
-    header( 'Location: /admin/?action=login' );
+    header( 'Location: ' . ADMIN_BASE . '/?action=login' );
     exit;
 }
 
@@ -137,7 +137,7 @@ if ( $action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         ) );
         $flash_success = 'Licentie aangemaakt: <strong>' . htmlspecialchars( $key ) . '</strong>';
     }
-    header( 'Location: /admin/?flash=' . urlencode( $flash_success ?? '' ) . '&err=' . urlencode( $flash_error ?? '' ) );
+    header( 'Location: ' . ADMIN_BASE . '/?flash=' . urlencode( $flash_success ?? '' ) . '&err=' . urlencode( $flash_error ?? '' ) );
     exit;
 }
 
@@ -151,7 +151,7 @@ if ( $action === 'toggle_status' && isset( $_GET['id'] ) ) {
         $pdo->prepare( 'UPDATE licenses SET status = :s WHERE id = :id' )
             ->execute( array( ':s' => $new, ':id' => $id ) );
     }
-    header( 'Location: /admin/' );
+    header( 'Location: ' . ADMIN_BASE . '/' );
     exit;
 }
 
@@ -161,7 +161,7 @@ if ( $action === 'delete' && isset( $_GET['id'] ) ) {
     $pdo = get_pdo();
     $pdo->prepare( 'DELETE FROM licenses WHERE id = :id' )
         ->execute( array( ':id' => intval( $_GET['id'] ) ) );
-    header( 'Location: /admin/' );
+    header( 'Location: ' . ADMIN_BASE . '/' );
     exit;
 }
 
@@ -329,7 +329,7 @@ function render_dashboard( $licenses, $stats ) {
         <div class="nav">
             <div class="nav-brand">Cleanmasterzz — License Server</div>
             <div class="nav-right">
-                <a href="/admin/?action=logout">Uitloggen</a>
+                <a href="<?php echo ADMIN_BASE; ?>/?action=logout">Uitloggen</a>
             </div>
         </div>
 
@@ -362,7 +362,7 @@ function render_dashboard( $licenses, $stats ) {
                 <div class="card-header">
                     <h2>Nieuwe licentie aanmaken</h2>
                 </div>
-                <form method="post" action="/admin/?action=create">
+                <form method="post" action="<?php echo ADMIN_BASE; ?>/?action=create">
                     <input type="hidden" name="csrf_token" value="<?php echo $csrf; ?>">
                     <div class="form-grid">
                         <div class="form-group">
@@ -404,19 +404,19 @@ function render_dashboard( $licenses, $stats ) {
             <div class="card">
                 <div class="card-header">
                     <h2>Alle licenties</h2>
-                    <form method="get" action="/admin/" class="filters">
+                    <form method="get" action="<?php echo ADMIN_BASE; ?>/" class="filters">
                         <input type="text" name="q" placeholder="Zoek key of email..." value="<?php echo htmlspecialchars( $_GET['q'] ?? '' ); ?>" style="width:200px;">
                         <select name="tier">
                             <option value="">Alle tiers</option>
-                            <option value="pro" <?php selected( $filter_tier, 'pro' ); ?>>Pro</option>
-                            <option value="boss" <?php selected( $filter_tier, 'boss' ); ?>>Boss</option>
-                            <option value="agency" <?php selected( $filter_tier, 'agency' ); ?>>Agency</option>
+                            <option value="pro" <?php echo $filter_tier === 'pro' ? 'selected' : ''; ?>>Pro</option>
+                            <option value="boss" <?php echo $filter_tier === 'boss' ? 'selected' : ''; ?>>Boss</option>
+                            <option value="agency" <?php echo $filter_tier === 'agency' ? 'selected' : ''; ?>>Agency</option>
                         </select>
                         <select name="status">
                             <option value="">Alle statussen</option>
-                            <option value="active" <?php selected( $filter_status, 'active' ); ?>>Actief</option>
-                            <option value="suspended" <?php selected( $filter_status, 'suspended' ); ?>>Opgeschort</option>
-                            <option value="expired" <?php selected( $filter_status, 'expired' ); ?>>Verlopen</option>
+                            <option value="active" <?php echo $filter_status === 'active' ? 'selected' : ''; ?>>Actief</option>
+                            <option value="suspended" <?php echo $filter_status === 'suspended' ? 'selected' : ''; ?>>Opgeschort</option>
+                            <option value="expired" <?php echo $filter_status === 'expired' ? 'selected' : ''; ?>>Verlopen</option>
                         </select>
                         <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                     </form>
@@ -448,16 +448,16 @@ function render_dashboard( $licenses, $stats ) {
                                     <td><?php echo $lic['expires_at'] ? date( 'd-m-Y', strtotime( $lic['expires_at'] ) ) : '∞'; ?></td>
                                     <td><?php echo date( 'd-m-Y', strtotime( $lic['created_at'] ) ); ?></td>
                                     <td style="white-space:nowrap;">
-                                        <a href="/admin/?action=activations&id=<?php echo $lic['id']; ?>" class="btn btn-sm" style="background:#e0f2fe;color:#0369a1;">Sites</a>
+                                        <a href="<?php echo ADMIN_BASE; ?>/?action=activations&id=<?php echo $lic['id']; ?>" class="btn btn-sm" style="background:#e0f2fe;color:#0369a1;">Sites</a>
                                         <?php if ( $lic['status'] === 'active' ) : ?>
-                                            <a href="/admin/?action=toggle_status&id=<?php echo $lic['id']; ?>&new_status=suspended&csrf=<?php echo $csrf; ?>"
+                                            <a href="<?php echo ADMIN_BASE; ?>/?action=toggle_status&id=<?php echo $lic['id']; ?>&new_status=suspended&csrf=<?php echo $csrf; ?>"
                                                class="btn btn-sm btn-warning"
                                                onclick="return confirm('Licentie opschorten?')">Opschorten</a>
                                         <?php else : ?>
-                                            <a href="/admin/?action=toggle_status&id=<?php echo $lic['id']; ?>&new_status=active&csrf=<?php echo $csrf; ?>"
+                                            <a href="<?php echo ADMIN_BASE; ?>/?action=toggle_status&id=<?php echo $lic['id']; ?>&new_status=active&csrf=<?php echo $csrf; ?>"
                                                class="btn btn-sm btn-success">Heractiveren</a>
                                         <?php endif; ?>
-                                        <a href="/admin/?action=delete&id=<?php echo $lic['id']; ?>&csrf=<?php echo $csrf; ?>"
+                                        <a href="<?php echo ADMIN_BASE; ?>/?action=delete&id=<?php echo $lic['id']; ?>&csrf=<?php echo $csrf; ?>"
                                            class="btn btn-sm btn-danger"
                                            onclick="return confirm('Licentie permanent verwijderen? Dit kan niet ongedaan worden gemaakt.')">Verwijder</a>
                                     </td>
@@ -492,7 +492,7 @@ function render_activations( $lic, $acts ) {
         </style>
     </head>
     <body>
-        <a href="/admin/" class="back">← Terug naar dashboard</a>
+        <a href="<?php echo ADMIN_BASE; ?>/" class="back">← Terug naar dashboard</a>
         <div class="card">
             <div class="card-header">
                 <h2>Activaties voor: <code><?php echo htmlspecialchars( $lic['license_key'] ); ?></code></h2>
