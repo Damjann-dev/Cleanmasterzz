@@ -26,8 +26,8 @@ class CMCalc_License {
     const CACHE_HOURS    = 24;
     const GRACE_DAYS     = 7;
 
-    /** License server URL — wordt ingesteld zodra VPS klaarstaat */
-    const SERVER_URL     = 'https://licenses.cleanmasterzz.nl/api';
+    /** License server URL */
+    const SERVER_URL     = 'http://185.228.82.252/licenses/api';
 
     /** Feature matrix per tier */
     private static $feature_matrix = array(
