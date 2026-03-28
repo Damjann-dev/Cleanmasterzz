@@ -35,6 +35,11 @@ $request_uri = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
 $path_parts  = explode( '/', trim( $request_uri, '/' ) );
 $endpoint    = end( $path_parts );
 
+// Fallback: als endpoint geen geldige actie is, probeer query string ?ep=
+if ( ! in_array( $endpoint, array( 'validate', 'activate', 'deactivate' ) ) ) {
+    $endpoint = $_GET['ep'] ?? '';
+}
+
 if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
     http_response_code( 405 );
     echo json_encode( array( 'error' => 'Alleen POST methode toegestaan.' ) );

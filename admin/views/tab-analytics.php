@@ -2,7 +2,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 // Feature gate
-if ( ! CMCalc_License::can( 'analytics' ) ) : ?>
+if ( ! CMCalc_License::has_feature( 'analytics' ) ) : ?>
 <div class="cmcalc-upgrade-gate">
     <div class="cmcalc-upgrade-gate-inner">
         <div class="cmcalc-upgrade-icon">📊</div>

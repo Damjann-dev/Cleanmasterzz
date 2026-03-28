@@ -267,7 +267,10 @@ function render_login( $error ) {
 }
 
 function render_dashboard( $licenses, $stats ) {
-    $csrf = csrf_token();
+    $csrf          = csrf_token();
+    $filter_tier   = $_GET['tier'] ?? '';
+    $filter_status = $_GET['status'] ?? '';
+    $search        = trim( $_GET['q'] ?? '' );
     $flash_ok  = htmlspecialchars( urldecode( $_GET['flash'] ?? '' ) );
     $flash_err = htmlspecialchars( urldecode( $_GET['err'] ?? '' ) );
     $tier_badges = array(

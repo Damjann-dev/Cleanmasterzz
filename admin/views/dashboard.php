@@ -137,8 +137,16 @@ $travel_price       = $travel ? get_post_meta( $travel->ID, '_cm_base_price', tr
         <a href="?page=cmcalc-dashboard&tab=analytics" class="cmcalc-nav-item <?php echo $active_tab === 'analytics' ? 'active' : ''; ?>">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
             <span>Analytics</span>
+            <?php if ( ! CMCalc_License::has_feature( 'analytics' ) ) : ?>
             <span class="cmcalc-nav-badge" style="background:linear-gradient(135deg,#f59e0b,#ec4899);color:#fff;font-size:9px;padding:2px 5px;">PRO</span>
+            <?php endif; ?>
         </a>
+        <?php if ( CMCalc_License::has_feature( 'boss_portal' ) ) : ?>
+        <a href="?page=cmcalc-dashboard&tab=berichten" class="cmcalc-nav-item <?php echo $active_tab === 'berichten' ? 'active' : ''; ?>">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Berichten</span>
+        </a>
+        <?php endif; ?>
         <a href="?page=cmcalc-dashboard&tab=licentie" class="cmcalc-nav-item <?php echo $active_tab === 'licentie' ? 'active' : ''; ?>">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <span>Licentie</span>
@@ -166,6 +174,9 @@ $travel_price       = $travel ? get_post_meta( $travel->ID, '_cm_base_price', tr
                 break;
             case 'analytics':
                 include CMCALC_PLUGIN_DIR . 'admin/views/tab-analytics.php';
+                break;
+            case 'berichten':
+                include CMCALC_PLUGIN_DIR . 'admin/views/tab-berichten.php';
                 break;
             case 'licentie':
                 include CMCALC_PLUGIN_DIR . 'admin/views/tab-licentie.php';

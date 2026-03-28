@@ -22,7 +22,7 @@ class CMCalc_PDF {
         if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Geen toegang.' );
         check_ajax_referer( 'cmcalc_admin_nonce', 'nonce' );
 
-        if ( ! CMCalc_License::can( 'pdf_invoices' ) ) {
+        if ( ! CMCalc_License::has_feature( 'pdf_invoices' ) ) {
             wp_send_json_error( 'PDF facturen vereisen een Pro licentie.' );
         }
 
@@ -335,7 +335,7 @@ class CMCalc_PDF {
     // ─── Helper: Factuur per mail sturen ─────────────────────────────────────
 
     public static function email_invoice( $booking_id ) {
-        if ( ! CMCalc_License::can( 'pdf_invoices' ) ) return false;
+        if ( ! CMCalc_License::has_feature( 'pdf_invoices' ) ) return false;
 
         $email = get_post_meta( $booking_id, '_cm_email', true );
         if ( ! $email ) return false;
