@@ -114,7 +114,7 @@ class CMCalc_PDF {
             'kvk'        => get_option( 'cmcalc_company_kvk', '' ),
             'btw_nr'     => get_option( 'cmcalc_company_btw_nr', '' ),
             'iban'       => get_option( 'cmcalc_company_iban', '' ),
-        ];
+        );
 
         $factuur_nr = 'CM-' . date('Y') . '-' . str_pad( $booking_id, 5, '0', STR_PAD_LEFT );
 
