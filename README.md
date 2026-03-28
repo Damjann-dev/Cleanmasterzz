@@ -1,130 +1,171 @@
-# Cleanmasterzz Calculator
+# 🧹 Cleanmasterzz Calculator
 
-**De alles-in-één WordPress plugin voor schoonmaakbedrijven.**
-Prijscalculator · Boekingsbeheer · Klantportaal · Analytics · PDF Facturen · Licentiesysteem
+<p align="center">
+  <img src="https://img.shields.io/badge/versie-1.2.0-blue?style=for-the-badge" alt="Versie">
+  <img src="https://img.shields.io/badge/WordPress-6.0%2B-21759B?style=for-the-badge&logo=wordpress&logoColor=white" alt="WordPress">
+  <img src="https://img.shields.io/badge/PHP-7.4%2B-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
+  <img src="https://img.shields.io/badge/licentie-Proprietary-red?style=for-the-badge" alt="Licentie">
+</p>
 
----
-
-## Wat is het?
-
-Cleanmasterzz Calculator is een krachtige WordPress plugin speciaal gebouwd voor schoonmaakbedrijven. Van een slimme prijscalculator op je website tot een volledig klantportaal met berichtensysteem — alles zit erin.
-
----
-
-## Functies per abonnement
-
-### Gratis
-- Prijscalculator op je website (oppervlakte, diensten, werkgebieden)
-- Boekingsbeheer in WordPress admin
-- E-mailnotificaties bij nieuwe boeking
-- Basis klantportaal (boeking opzoeken via e-mail)
-- Kortingscodes
-- 1 bedrijfsprofiel
-
-### Pro
-Alles van Gratis, plus:
-- **Bedrijfswizard** — uitgebreide bedrijfsinstellingen
-- **Analytics dashboard** — omzet, boekingen, populaire diensten
-- **PDF facturen** — automatisch gegenereerd bij boeking
-- **Geavanceerde kortingen** — percentages, vaste bedragen, tijdgebonden
-- **Kalenderweergave** — boekingen in kalender
-- **Multi-bedrijf** — meerdere vestigingen beheren
-
-### Boss
-Alles van Pro, plus:
-- **Klantaccounts** — klanten registreren en inloggen
-- **Berichtensysteem** — klant ↔ bedrijf communicatie
-- **Boss portaal** — volledig klantdashboard met boekingsoverzicht
-- **SMS notificaties**
-- **Medewerkersinlog per vestiging**
-
-### Agency
-Alles van Boss, plus:
-- **White-label** — eigen branding, geen Cleanmasterzz vermeldingen
-- **Reseller dashboard** — meerdere klanten beheren
-- **Onbeperkt bedrijven**
+<p align="center">
+  <strong>De alles-in-één WordPress plugin voor schoonmaakbedrijven.</strong><br>
+  Prijscalculator · Boekingsbeheer · Klantportaal · Analytics · PDF Facturen
+</p>
 
 ---
 
-## Installatie
+## ✨ Wat doet het?
 
-1. Upload de plugin naar `/wp-content/plugins/cleanmasterzz-calculator/`
-2. Activeer via **Plugins** in WordPress admin
-3. Ga naar **Calculator** → Setup wizard en volg de stappen
-4. Voeg de calculator toe aan een pagina met shortcode `[cmcalc_calculator]`
+Cleanmasterzz Calculator geeft jouw schoonmaakbedrijf een professionele online aanwezigheid. Klanten berekenen zelf hun prijs, boeken direct en beheren hun afspraken via een eigen portaal — allemaal vanuit jouw WordPress website.
 
-### Shortcodes
+---
+
+## 🎯 Functies per abonnement
+
+### 🆓 Gratis
+| Functie | |
+|---|---|
+| 🧮 Prijscalculator op je website | ✅ |
+| 📅 Boekingsbeheer in admin | ✅ |
+| 📧 E-mailnotificaties | ✅ |
+| 🔗 Basis klantportaal (via e-maillink) | ✅ |
+| 🏷️ Kortingscodes | ✅ |
+| 🏢 1 bedrijfsprofiel | ✅ |
+
+### ⭐ Pro
+> Alles van Gratis, plus:
+
+| Functie | |
+|---|---|
+| 🧙 Bedrijfswizard | ✅ |
+| 📊 Analytics dashboard | ✅ |
+| 🧾 PDF facturen | ✅ |
+| 💰 Geavanceerde kortingen | ✅ |
+| 🗓️ Kalenderweergave | ✅ |
+| 🏢 Multi-vestiging beheer | ✅ |
+
+### 👑 Boss
+> Alles van Pro, plus:
+
+| Functie | |
+|---|---|
+| 👤 Klantaccounts (registreren & inloggen) | ✅ |
+| 💬 Berichtensysteem klant ↔ bedrijf | ✅ |
+| 🖥️ Volledig klantdashboard | ✅ |
+| 📱 SMS notificaties | ✅ |
+| 👷 Medewerkersinlog per vestiging | ✅ |
+
+### 🚀 Agency
+> Alles van Boss, plus:
+
+| Functie | |
+|---|---|
+| 🎨 White-label (eigen branding) | ✅ |
+| 📋 Reseller dashboard | ✅ |
+| ♾️ Onbeperkt bedrijven | ✅ |
+
+---
+
+## 🚀 Installatie
+
+```bash
+# 1. Upload de plugin naar je WordPress installatie
+/wp-content/plugins/cleanmasterzz-calculator/
+
+# 2. Activeer via WordPress admin → Plugins
+
+# 3. Doorloop de setup wizard
+WordPress admin → Calculator → Setup Wizard
+```
+
+---
+
+## 🔧 Shortcodes
 
 | Shortcode | Beschrijving |
-|-----------|-------------|
-| `[cmcalc_calculator]` | Prijscalculator |
-| `[cmcalc_portal]` | Basis klantportaal (gratis) |
-| `[cmcalc_boss_portal]` | Boss klantportaal met accounts |
-| `[cmcalc_boss_login]` | Inlog/registreerformulier |
-
----
-
-## Licentie activeren
-
-1. Ga naar **Calculator** → **Licentie**
-2. Voer je licentiesleutel in (formaat: `CMCALC-XXXX-XXXX-XXXX-XXXX`)
-3. Klik **Activeren**
-
-Licenties aanschaffen of beheren: [cleanmasterzz.nl](https://cleanmasterzz.nl)
-
----
-
-## Vereisten
-
-- WordPress 6.0 of hoger
-- PHP 7.4 of hoger
-- MySQL 5.7 of hoger
-
----
-
-## Licentieserver (zelf hosten)
-
-De plugin communiceert met een externe licentieserver. Voor zelf-hosting:
-
-1. Kopieer de map `license-server/` naar je server (bijv. `/var/www/licenses/`)
-2. Pas `license-server/config.php` aan met je database- en admingegevens
-3. Kopieer `licenses-api.php` naar je WordPress root (`/var/www/html/`)
-4. Stel nginx in volgens de configuratie in `license-server/`
-
-Admin panel bereikbaar via `/licenses/admin/` met de inloggegevens uit `config.php`.
-
----
-
-## Screenshots
-
-| | |
 |---|---|
-| **Calculator** — klant vult oppervlakte en diensten in | **Boekingen** — volledig overzicht in admin |
-| **Analytics** — omzet en trends in één oogopslag | **Boss portaal** — klant ziet al zijn boekingen |
+| `[cmcalc_calculator]` | 🧮 Prijscalculator |
+| `[cmcalc_portal]` | 🔗 Basis klantportaal |
+| `[cmcalc_boss_portal]` | 👤 Boss klantportaal met accounts |
+| `[cmcalc_boss_login]` | 🔑 Inlog / registreerformulier |
 
 ---
 
-## Changelog
+## 🔑 Licentie activeren
 
-### v1.2.0
-- Boss portaal met klantaccounts en berichtensysteem
-- PDF facturen generatie
-- Analytics dashboard
-- Licentiesysteem met tiered features
-- Multi-bedrijf ondersteuning
+1. Ga naar **WordPress admin → Calculator → Licentie**
+2. Voer je sleutel in: `CMCALC-XXXX-XXXX-XXXX-XXXX`
+3. Klik **Activeren** ✅
+
+> 💡 Licenties aanschaffen of beheren via [cleanmasterzz.nl](https://cleanmasterzz.nl)
+
+---
+
+## 🖥️ Licentieserver (zelf hosten)
+
+<details>
+<summary>Klik om uit te klappen</summary>
+
+```bash
+# 1. Kopieer naar je server
+cp -r license-server/ /var/www/licenses/
+
+# 2. Pas config aan
+nano /var/www/licenses/config.php
+
+# 3. Kopieer API wrapper naar WordPress root
+cp licenses-api.php /var/www/html/
+
+# 4. Admin panel
+http://jouwserver.nl/licenses/admin/
+```
+
+Genereer een nieuw admin wachtwoord:
+```bash
+php -r 'echo password_hash("jouwwachtwoord", PASSWORD_BCRYPT);'
+```
+
+</details>
+
+---
+
+## 📋 Vereisten
+
+| | Minimum |
+|---|---|
+| WordPress | 6.0+ |
+| PHP | 7.4+ |
+| MySQL | 5.7+ |
+
+---
+
+## 📝 Changelog
+
+### v1.2.0 — Maart 2026
+- 👑 Boss portaal met klantaccounts en berichtensysteem
+- 🧾 PDF facturen automatisch gegenereerd
+- 📊 Analytics dashboard
+- 🔐 Licentiesysteem met tier-gebaseerde features
+- 🏢 Multi-bedrijf ondersteuning
 
 ### v1.1.0
-- SMTP e-mail configuratie
-- Klantportaal basis versie
-- Beveiligingsfixes
+- 📧 SMTP e-mail configuratie
+- 🔗 Basis klantportaal
+- 🔒 Beveiligingsfixes
 
 ### v1.0.0
-- Eerste release
-- Prijscalculator, boekingen, kortingscodes
+- 🎉 Eerste release
+- 🧮 Prijscalculator, boekingen, kortingscodes
 
 ---
 
-## Licentie
+## 📄 Licentie
 
-Proprietary — alle rechten voorbehouden aan CleanMasterzz.
+© 2026 CleanMasterzz — Alle rechten voorbehouden.
 Zie [cleanmasterzz.nl](https://cleanmasterzz.nl) voor licentievoorwaarden.
+
+---
+
+<p align="center">
+  Gemaakt met ❤️ voor schoonmaakbedrijven in Nederland
+</p>
