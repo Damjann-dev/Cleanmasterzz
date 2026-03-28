@@ -27,7 +27,7 @@ class CMCalc_License {
     const GRACE_DAYS     = 7;
 
     /** License server URL */
-    const SERVER_URL     = 'http://185.228.82.252/licenses/api';
+    const SERVER_URL     = 'http://185.228.82.252/licenses-api.php';
 
     /** Feature matrix per tier */
     private static $feature_matrix = array(
