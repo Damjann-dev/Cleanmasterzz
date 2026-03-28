@@ -101,34 +101,6 @@ WordPress admin → Calculator → Setup Wizard
 
 ---
 
-## 🖥️ Licentieserver (zelf hosten)
-
-<details>
-<summary>Klik om uit te klappen</summary>
-
-```bash
-# 1. Kopieer naar je server
-cp -r license-server/ /var/www/licenses/
-
-# 2. Pas config aan
-nano /var/www/licenses/config.php
-
-# 3. Kopieer API wrapper naar WordPress root
-cp licenses-api.php /var/www/html/
-
-# 4. Admin panel
-http://jouwserver.nl/licenses/admin/
-```
-
-Genereer een nieuw admin wachtwoord:
-```bash
-php -r 'echo password_hash("jouwwachtwoord", PASSWORD_BCRYPT);'
-```
-
-</details>
-
----
-
 ## 📋 Vereisten
 
 | | Minimum |

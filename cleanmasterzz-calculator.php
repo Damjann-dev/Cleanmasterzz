@@ -7,7 +7,7 @@
  * Author:      CleanMasterzz
  * Text Domain: cleanmasterzz-calculator
  * Requires at least: 6.0
- * Requires PHP: 8.0
+ * Requires PHP: 7.4
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
