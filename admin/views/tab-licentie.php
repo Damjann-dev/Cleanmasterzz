@@ -390,11 +390,16 @@ jQuery(function($) {
         });
     });
 
-    // Auto-format key input
+    // Auto-format key input: CMCALC-XXXX-XXXX-XXXX-XXXX
     $('#cmcalcLicenseKey').on('input', function() {
         var val = $(this).val().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-        var parts = val.match(/.{1,4}/g) || [];
-        $(this).val(parts.join('-').substring(0, 30));
+        var formatted = '';
+        if (val.length > 0) formatted = val.substring(0, 6);
+        if (val.length > 6) formatted += '-' + val.substring(6, 10);
+        if (val.length > 10) formatted += '-' + val.substring(10, 14);
+        if (val.length > 14) formatted += '-' + val.substring(14, 18);
+        if (val.length > 18) formatted += '-' + val.substring(18, 22);
+        $(this).val(formatted);
     });
 });
 </script>
