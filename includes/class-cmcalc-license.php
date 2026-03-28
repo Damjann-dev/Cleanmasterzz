@@ -334,7 +334,7 @@ class CMCalc_License {
      * @return array|WP_Error
      */
     private static function api_request( $endpoint, $params ) {
-        $url = rtrim( self::SERVER_URL, '/' ) . '/' . $endpoint;
+        $url = rtrim( self::SERVER_URL, '/' ) . '?ep=' . $endpoint;
 
         $response = wp_remote_post( $url, array(
             'timeout' => 10,
