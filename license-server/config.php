@@ -33,3 +33,7 @@ define( 'DEBUG_MODE', false );
 
 // Sessie naam
 define( 'SESSION_NAME', 'cmcalc_ls_session' );
+
+// URL base voor admin panel (geen trailing slash)
+// Pas aan als de server op een ander pad draait
+define( 'ADMIN_BASE', '/licenses/admin' );
