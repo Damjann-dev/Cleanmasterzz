@@ -42,6 +42,8 @@ add_action( 'init', array( 'CMCalc_Boss_Portal', 'register' ) );
 CMCalc_SMTP::init();
 CMCalc_PDF::init();
 
+CMCalc_License::init();
+
 if ( is_admin() ) {
     CMCalc_Admin::init();
     CMCalc_Meta_Boxes::init();
