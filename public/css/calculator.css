@@ -4,22 +4,25 @@
 
 /* --- Variables --- */
 .cmcalc-calculator {
-    --cmcalc-primary: #1B2A4A;
-    --cmcalc-secondary: #28a745;
-    --cmcalc-accent: #4DA8DA;
-    --cmcalc-text: #2d3436;
-    --cmcalc-text-light: #6c757d;
-    --cmcalc-bg: #ffffff;
-    --cmcalc-bg-light: #f8f9fa;
-    --cmcalc-border: #e9ecef;
-    --cmcalc-radius: 16px;
-    --cmcalc-btn-radius: 8px;
-    --cmcalc-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    --cmcalc-font-size: 15px;
+    --cmcalc-primary:    #3b82f6;
+    --cmcalc-secondary:  #10b981;
+    --cmcalc-accent:     #6366f1;
+    --cmcalc-boss:       #f59e0b;
+    --cmcalc-grad:       linear-gradient(135deg, #3b82f6, #8b5cf6);
+    --cmcalc-text:       #0f172a;
+    --cmcalc-text-light: #64748b;
+    --cmcalc-bg:         #ffffff;
+    --cmcalc-bg-light:   #f8fafc;
+    --cmcalc-border:     #e2e8f0;
+    --cmcalc-radius:     16px;
+    --cmcalc-btn-radius: 10px;
+    --cmcalc-shadow:     0 4px 32px rgba(0,0,0,0.08);
+    --cmcalc-font-size:  15px;
     --cmcalc-title-size: 22px;
-    --cmcalc-max-width: 1100px;
-    --cmcalc-padding: 24px;
-    --cmcalc-gap: 16px;
+    --cmcalc-max-width:  1100px;
+    --cmcalc-padding:    24px;
+    --cmcalc-gap:        16px;
+    --cmcalc-font:       'Inter', -apple-system, sans-serif;
 }
 
 /* --- Keyframes --- */
