@@ -16,6 +16,12 @@ class CMCalc_Boss_Portal {
     // ─── Init ────────────────────────────────────────────────────────────────
 
     public static function register() {
+        // Zorg dat tabellen altijd bestaan (ook na plugin update zonder heractivatie)
+        if ( get_option( 'cmcalc_boss_tables_v1' ) !== '1' ) {
+            self::install_tables();
+            update_option( 'cmcalc_boss_tables_v1', '1' );
+        }
+
         add_shortcode( 'cmcalc_boss_portal', array( __CLASS__, 'render_portal' ) );
         add_shortcode( 'cmcalc_boss_login',  array( __CLASS__, 'render_login' ) );
 
@@ -352,11 +358,8 @@ class CMCalc_Boss_Portal {
         }
 
         ob_start();
-        $styles = CMCalc_Admin::get_styles();
-        $primary = $styles['primary_color'] ?? '#1B2A4A';
-        $accent  = $styles['accent_color']  ?? '#4DA8DA';
         ?>
-        <div class="cm-boss-auth" style="--cm-primary:<?php echo esc_attr($primary); ?>;--cm-accent:<?php echo esc_attr($accent); ?>">
+        <div class="cm-boss-auth">
             <div class="cm-boss-tabs">
                 <button class="cm-boss-tab active" data-tab="login">Inloggen</button>
                 <button class="cm-boss-tab" data-tab="register">Account aanmaken</button>
@@ -431,11 +434,8 @@ class CMCalc_Boss_Portal {
         $tab = sanitize_key( $_GET['tab'] ?? 'dashboard' );
 
         ob_start();
-        $styles  = CMCalc_Admin::get_styles();
-        $primary = $styles['primary_color'] ?? '#1B2A4A';
-        $accent  = $styles['accent_color']  ?? '#4DA8DA';
         ?>
-        <div class="cm-boss-portal" style="--cm-primary:<?php echo esc_attr($primary); ?>;--cm-accent:<?php echo esc_attr($accent); ?>">
+        <div class="cm-boss-portal">
 
             <!-- Sidebar nav -->
             <nav class="cm-boss-nav">
