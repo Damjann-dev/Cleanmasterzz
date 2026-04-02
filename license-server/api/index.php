@@ -104,7 +104,35 @@ function get_license( $pdo, $license_key ) {
     return $stmt->fetch();
 }
 
+// Standaard features per tier
+function tier_defaults( $tier ) {
+    $defaults = array(
+        'free'   => array( 'analytics' => false, 'pdf_invoices' => false, 'boss_portal' => false, 'custom_branding' => false, 'multi_location' => false, 'max_services' => 3 ),
+        'pro'    => array( 'analytics' => true,  'pdf_invoices' => true,  'boss_portal' => false, 'custom_branding' => false, 'multi_location' => true,  'max_services' => 10 ),
+        'boss'   => array( 'analytics' => true,  'pdf_invoices' => true,  'boss_portal' => true,  'custom_branding' => false, 'multi_location' => true,  'max_services' => 999 ),
+        'agency' => array( 'analytics' => true,  'pdf_invoices' => true,  'boss_portal' => true,  'custom_branding' => true,  'multi_location' => true,  'max_services' => 999 ),
+    );
+    return $defaults[ $tier ] ?? $defaults['free'];
+}
+
 function build_response( $license, $domain ) {
+    // Begin met tier standaarden
+    $features = tier_defaults( $license['tier'] );
+
+    // Overschrijf met custom features (per-licentie instellingen van admin)
+    if ( ! empty( $license['features'] ) ) {
+        $custom = json_decode( $license['features'], true );
+        if ( is_array( $custom ) ) {
+            foreach ( $custom as $key => $val ) {
+                $features[ $key ] = $val;
+            }
+        }
+    }
+
+    // max_services staat ook los als DB kolom — neem de hogere waarde
+    $max_services = max( intval( $license['max_services'] ), intval( $features['max_services'] ) );
+    $features['max_services'] = $max_services;
+
     return array(
         'valid'        => true,
         'tier'         => $license['tier'],
@@ -112,6 +140,7 @@ function build_response( $license, $domain ) {
         'expires_at'   => $license['expires_at'],
         'domain'       => $domain,
         'billing_type' => $license['billing_type'],
+        'features'     => $features,
         'message'      => 'Licentie actief.',
     );
 }

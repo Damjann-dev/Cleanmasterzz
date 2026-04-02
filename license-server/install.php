@@ -35,17 +35,22 @@ try {
         CREATE TABLE IF NOT EXISTS licenses (
             id              INT AUTO_INCREMENT PRIMARY KEY,
             license_key     VARCHAR(30) NOT NULL UNIQUE,
-            tier            ENUM('pro','boss','agency') NOT NULL,
+            tier            ENUM('free','pro','boss','agency') NOT NULL DEFAULT 'free',
             email           VARCHAR(255) NOT NULL,
+            name            VARCHAR(255) NOT NULL DEFAULT '',
             status          ENUM('active','suspended','expired') NOT NULL DEFAULT 'active',
-            billing_type    ENUM('monthly','yearly','lifetime') NOT NULL DEFAULT 'yearly',
+            billing_type    ENUM('monthly','yearly','lifetime') NOT NULL DEFAULT 'lifetime',
             max_activations INT NOT NULL DEFAULT 1,
+            max_services    INT NOT NULL DEFAULT 3,
+            features        TEXT NULL,
             expires_at      DATETIME NULL,
             notes           TEXT,
             created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_key (license_key),
             INDEX idx_email (email),
-            INDEX idx_status (status)
+            INDEX idx_status (status),
+            INDEX idx_tier (tier)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     " );
 

@@ -124,14 +124,41 @@ class CMCalc_License {
 
     /**
      * Controleer of een feature beschikbaar is op de huidige licentie.
+     * Gebruikt eerst de server-returned features (per-licentie instellingen),
+     * daarna de statische feature matrix als fallback.
      *
-     * @param  string $feature  Feature ID (zie $feature_matrix)
+     * @param  string $feature  Feature ID
      * @return bool
      */
     public static function has_feature( $feature ) {
+        // Haal server-returned features op (opgeslagen bij activatie/validatie)
+        $data = self::get_cached_data();
+        if ( $data && isset( $data['features'] ) && is_array( $data['features'] ) ) {
+            if ( array_key_exists( $feature, $data['features'] ) ) {
+                return (bool) $data['features'][ $feature ];
+            }
+        }
+
+        // Fallback: statische matrix op basis van tier
         $tier   = self::get_tier();
         $matrix = self::$feature_matrix[ $tier ] ?? self::$feature_matrix['free'];
         return ! empty( $matrix[ $feature ] );
+    }
+
+    /**
+     * Geef het maximum aantal diensten terug voor deze licentie.
+     * Gratis = 3, Pro = 10, Boss/Agency = 999 (of custom instelling per licentie)
+     *
+     * @return int
+     */
+    public static function get_max_services() {
+        $data = self::get_cached_data();
+        if ( $data && isset( $data['features']['max_services'] ) ) {
+            return max( 1, intval( $data['features']['max_services'] ) );
+        }
+        // Fallback per tier
+        $defaults = array( 'free' => 3, 'pro' => 10, 'boss' => 999, 'agency' => 999 );
+        return $defaults[ self::get_tier() ] ?? 3;
     }
 
     /**

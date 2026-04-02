@@ -97,6 +97,12 @@ class CMCalc_REST_API {
             $result = CMCalc_Seeder::get_default_services();
         }
 
+        // ── Licentie limiet: max aantal diensten ──────────────────────────
+        $max_services = CMCalc_License::get_max_services();
+        if ( count( $result ) > $max_services ) {
+            $result = array_slice( $result, 0, $max_services );
+        }
+
         // Bedrijf filtering
         $bedrijf_id = 0;
         $bedrijf_info = null;
