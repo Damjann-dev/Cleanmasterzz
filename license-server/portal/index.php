@@ -168,7 +168,8 @@ if ( is_logged_in() ) {
         if ($view_license) {
             $stmt2 = db()->prepare('SELECT * FROM license_activations WHERE license_id=? ORDER BY last_seen DESC');
             $stmt2->execute(array($view_license['id'])); $activations = $stmt2->fetchAll();
-            $msg = match($_GET['msg']??'') { 'saved'=>'Opgeslagen.','created'=>'Licentie aangemaakt.', default=>'' };
+            $msg_map = array('saved'=>'Opgeslagen.','created'=>'Licentie aangemaakt.');
+            $msg = $msg_map[$_GET['msg']??''] ?? '';
         }
     }
 }
