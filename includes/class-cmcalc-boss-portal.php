@@ -136,6 +136,9 @@ class CMCalc_Boss_Portal {
         if ( strlen( $password ) < 8 )    wp_send_json_error( 'Wachtwoord minimaal 8 tekens.' );
         if ( ! $first_name || ! $last_name ) wp_send_json_error( 'Naam is verplicht.' );
 
+        // Ensure tables exist before first use
+        self::install_tables();
+
         global $wpdb;
         $table = $wpdb->prefix . self::TABLE_ACCOUNTS;
 
@@ -151,11 +154,13 @@ class CMCalc_Boss_Portal {
             'last_name'     => $last_name,
             'company_name'  => $company,
             'phone'         => $phone,
-            'verified'      => 1, // Direct actief (geen e-mailverificatie voor nu)
+            'verified'      => 1,
             'verify_token'  => $verify_token,
         ) );
 
-        if ( ! $inserted ) wp_send_json_error( 'Registratie mislukt. Probeer opnieuw.' );
+        if ( ! $inserted ) {
+            wp_send_json_error( 'Registratie mislukt: ' . ( $wpdb->last_error ?: 'Onbekende fout.' ) );
+        }
 
         $account_id = $wpdb->insert_id;
         self::set_session( $account_id );
@@ -332,8 +337,10 @@ class CMCalc_Boss_Portal {
     // ─── Assets ───────────────────────────────────────────────────────────────
 
     public static function enqueue_assets() {
-        if ( ! has_shortcode( get_post()->post_content ?? '', 'cmcalc_boss_portal' ) &&
-             ! has_shortcode( get_post()->post_content ?? '', 'cmcalc_boss_login' ) ) return;
+        $post    = get_post();
+        $content = $post ? $post->post_content : '';
+        if ( ! has_shortcode( $content, 'cmcalc_boss_portal' ) &&
+             ! has_shortcode( $content, 'cmcalc_boss_login' ) ) return;
 
         wp_enqueue_style( 'cmcalc-boss-portal',
             CMCALC_PLUGIN_URL . 'public/css/boss-portal.css',

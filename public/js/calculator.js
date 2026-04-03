@@ -478,10 +478,15 @@
 
         var isChecked = checkbox.checked;
 
-        // If checking ON and service has sub-options → show questionnaire popup
+        // If checking ON and service has sub-options → restore saved or show popup
         if (isChecked && !service.requires_quote && !isZakelijk &&
             service.sub_options && service.sub_options.length > 0) {
-            // Don't select yet — wait for questionnaire confirmation
+            // If options were previously set, restore them without reopening popup
+            if (subOptionSelections[index]) {
+                applyServiceSelection(card, index, true);
+                return;
+            }
+            // No saved options yet → show questionnaire
             openQuestionnaire(index);
             return;
         }
@@ -508,8 +513,7 @@
             if (qtyWrap) qtyWrap.style.display = 'none';
             if (lineTotal) lineTotal.style.display = 'none';
             if (editBtn) editBtn.style.display = 'none';
-            // Clear sub-option selections
-            delete subOptionSelections[index];
+            // Keep sub-option selections so they are restored on recheck
             // Hide summary
             var summary = card.querySelector('.cmcalc-service__options-summary');
             if (summary) summary.style.display = 'none';
