@@ -35,6 +35,69 @@ class CMCalc_REST_API {
             'callback'            => array( __CLASS__, 'geocode_werkgebied' ),
             'permission_callback' => function() { return current_user_can( 'manage_options' ); },
         ) );
+
+        // ─── Admin API (vereist manage_options) ───────────────────────────────
+        $admin_perm = function() { return current_user_can( 'manage_options' ); };
+
+        register_rest_route( $ns, '/admin/stats', array(
+            'methods'             => 'GET',
+            'callback'            => array( __CLASS__, 'admin_stats' ),
+            'permission_callback' => $admin_perm,
+        ) );
+
+        register_rest_route( $ns, '/admin/bookings', array(
+            'methods'             => 'GET',
+            'callback'            => array( __CLASS__, 'admin_bookings' ),
+            'permission_callback' => $admin_perm,
+        ) );
+
+        register_rest_route( $ns, '/admin/bookings/(?P<id>\d+)', array(
+            'methods'             => 'GET',
+            'callback'            => array( __CLASS__, 'admin_booking_single' ),
+            'permission_callback' => $admin_perm,
+        ) );
+
+        register_rest_route( $ns, '/admin/bookings/(?P<id>\d+)/status', array(
+            'methods'             => 'POST',
+            'callback'            => array( __CLASS__, 'admin_booking_update_status' ),
+            'permission_callback' => $admin_perm,
+        ) );
+
+        register_rest_route( $ns, '/admin/bookings/bulk-status', array(
+            'methods'             => 'POST',
+            'callback'            => array( __CLASS__, 'admin_bookings_bulk_status' ),
+            'permission_callback' => $admin_perm,
+        ) );
+
+        register_rest_route( $ns, '/admin/customers', array(
+            'methods'             => 'GET',
+            'callback'            => array( __CLASS__, 'admin_customers' ),
+            'permission_callback' => $admin_perm,
+        ) );
+
+        register_rest_route( $ns, '/admin/messages', array(
+            'methods'             => 'GET',
+            'callback'            => array( __CLASS__, 'admin_messages' ),
+            'permission_callback' => $admin_perm,
+        ) );
+
+        register_rest_route( $ns, '/admin/messages/(?P<account_id>\d+)/reply', array(
+            'methods'             => 'POST',
+            'callback'            => array( __CLASS__, 'admin_message_reply' ),
+            'permission_callback' => $admin_perm,
+        ) );
+
+        register_rest_route( $ns, '/admin/revenue', array(
+            'methods'             => 'GET',
+            'callback'            => array( __CLASS__, 'admin_revenue' ),
+            'permission_callback' => $admin_perm,
+        ) );
+
+        register_rest_route( $ns, '/admin/export/bookings', array(
+            'methods'             => 'GET',
+            'callback'            => array( __CLASS__, 'admin_export_bookings_csv' ),
+            'permission_callback' => $admin_perm,
+        ) );
     }
 
     /**
@@ -771,6 +834,268 @@ class CMCalc_REST_API {
             'city'     => $city,
             'lat'      => $lat,
             'lon'      => $lon,
+        ) );
+    }
+
+    // ─── Admin API helpers ────────────────────────────────────────────────────
+
+    private static function booking_to_array( $post ) {
+        $meta = array();
+        foreach ( get_post_meta( $post->ID ) as $key => $vals ) {
+            if ( strpos( $key, '_cm_' ) === 0 ) {
+                $meta[ ltrim( $key, '_' ) ] = maybe_unserialize( $vals[0] );
+            }
+        }
+        return array(
+            'id'         => $post->ID,
+            'title'      => get_the_title( $post ),
+            'status'     => get_post_meta( $post->ID, '_cm_booking_status', true ) ?: 'nieuw',
+            'date'       => get_post_meta( $post->ID, '_cm_date', true ),
+            'time'       => get_post_meta( $post->ID, '_cm_time', true ),
+            'naam'       => get_post_meta( $post->ID, '_cm_naam', true ),
+            'email'      => get_post_meta( $post->ID, '_cm_email', true ),
+            'phone'      => get_post_meta( $post->ID, '_cm_phone', true ),
+            'address'    => get_post_meta( $post->ID, '_cm_address', true ),
+            'city'       => get_post_meta( $post->ID, '_cm_city', true ),
+            'service'    => get_post_meta( $post->ID, '_cm_service_name', true ),
+            'total'      => floatval( get_post_meta( $post->ID, '_cm_total', true ) ),
+            'created_at' => get_the_date( 'c', $post ),
+            'notes'      => get_post_meta( $post->ID, '_cm_notes', true ),
+        );
+    }
+
+    // ─── Admin: Stats ─────────────────────────────────────────────────────────
+
+    public static function admin_stats( $request ) {
+        $all = get_posts( array( 'post_type' => 'boeking', 'posts_per_page' => -1, 'post_status' => 'publish' ) );
+        $counts   = array( 'nieuw' => 0, 'bevestigd' => 0, 'gepland' => 0, 'voltooid' => 0, 'geannuleerd' => 0 );
+        $revenue  = 0;
+        $month_revenue = 0;
+        $month = date( 'Y-m' );
+
+        foreach ( $all as $b ) {
+            $s = get_post_meta( $b->ID, '_cm_booking_status', true ) ?: 'nieuw';
+            if ( isset( $counts[ $s ] ) ) $counts[ $s ]++;
+            $total = floatval( get_post_meta( $b->ID, '_cm_total', true ) );
+            $revenue += $total;
+            if ( get_the_date( 'Y-m', $b ) === $month ) $month_revenue += $total;
+        }
+
+        global $wpdb;
+        $customer_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}cmcalc_accounts" );
+        $unread_count   = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}cmcalc_messages WHERE direction='in' AND is_read=0" );
+
+        return rest_ensure_response( array(
+            'total_bookings'  => count( $all ),
+            'status_counts'   => $counts,
+            'total_revenue'   => round( $revenue, 2 ),
+            'month_revenue'   => round( $month_revenue, 2 ),
+            'customer_count'  => $customer_count,
+            'unread_messages' => $unread_count,
+        ) );
+    }
+
+    // ─── Admin: Bookings list ─────────────────────────────────────────────────
+
+    public static function admin_bookings( $request ) {
+        $status  = sanitize_text_field( $request->get_param( 'status' ) ?: '' );
+        $search  = sanitize_text_field( $request->get_param( 'search' ) ?: '' );
+        $per_page = min( 100, max( 10, intval( $request->get_param( 'per_page' ) ?: 50 ) ) );
+        $page    = max( 1, intval( $request->get_param( 'page' ) ?: 1 ) );
+
+        $valid_statuses = array( 'nieuw', 'bevestigd', 'gepland', 'voltooid', 'geannuleerd' );
+        $args = array(
+            'post_type'      => 'boeking',
+            'posts_per_page' => $per_page,
+            'paged'          => $page,
+            'post_status'    => 'publish',
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+        );
+
+        if ( $status && in_array( $status, $valid_statuses, true ) ) {
+            $args['meta_query'] = array( array( 'key' => '_cm_booking_status', 'value' => $status ) );
+        }
+        if ( $search ) {
+            $args['s'] = $search;
+        }
+
+        $posts = get_posts( $args );
+        $total = wp_count_posts( 'boeking' );
+
+        return rest_ensure_response( array(
+            'bookings' => array_map( array( __CLASS__, 'booking_to_array' ), $posts ),
+            'total'    => array_sum( (array) $total ),
+            'page'     => $page,
+            'per_page' => $per_page,
+        ) );
+    }
+
+    // ─── Admin: Single booking ────────────────────────────────────────────────
+
+    public static function admin_booking_single( $request ) {
+        $post = get_post( intval( $request['id'] ) );
+        if ( ! $post || $post->post_type !== 'boeking' ) {
+            return new WP_Error( 'not_found', 'Boeking niet gevonden', array( 'status' => 404 ) );
+        }
+        return rest_ensure_response( self::booking_to_array( $post ) );
+    }
+
+    // ─── Admin: Update booking status ─────────────────────────────────────────
+
+    public static function admin_booking_update_status( $request ) {
+        $id     = intval( $request['id'] );
+        $status = sanitize_text_field( $request->get_param( 'status' ) );
+        $valid  = array( 'nieuw', 'bevestigd', 'gepland', 'voltooid', 'geannuleerd' );
+
+        if ( ! in_array( $status, $valid, true ) ) {
+            return new WP_Error( 'invalid_status', 'Ongeldige status', array( 'status' => 400 ) );
+        }
+        $post = get_post( $id );
+        if ( ! $post || $post->post_type !== 'boeking' ) {
+            return new WP_Error( 'not_found', 'Boeking niet gevonden', array( 'status' => 404 ) );
+        }
+        update_post_meta( $id, '_cm_booking_status', $status );
+        return rest_ensure_response( array( 'success' => true, 'status' => $status ) );
+    }
+
+    // ─── Admin: Bulk status update ────────────────────────────────────────────
+
+    public static function admin_bookings_bulk_status( $request ) {
+        $ids    = array_map( 'intval', (array) $request->get_param( 'ids' ) );
+        $status = sanitize_text_field( $request->get_param( 'status' ) );
+        $valid  = array( 'nieuw', 'bevestigd', 'gepland', 'voltooid', 'geannuleerd' );
+
+        if ( empty( $ids ) || ! in_array( $status, $valid, true ) ) {
+            return new WP_Error( 'invalid', 'Ongeldige gegevens', array( 'status' => 400 ) );
+        }
+        $updated = 0;
+        foreach ( $ids as $id ) {
+            $post = get_post( $id );
+            if ( $post && $post->post_type === 'boeking' ) {
+                update_post_meta( $id, '_cm_booking_status', $status );
+                $updated++;
+            }
+        }
+        return rest_ensure_response( array( 'updated' => $updated ) );
+    }
+
+    // ─── Admin: Customers ────────────────────────────────────────────────────
+
+    public static function admin_customers( $request ) {
+        global $wpdb;
+        $search = sanitize_text_field( $request->get_param( 'search' ) ?: '' );
+        $sql    = "SELECT id, email, first_name, last_name, company_name, phone, created_at FROM {$wpdb->prefix}cmcalc_accounts WHERE 1";
+        $params = array();
+        if ( $search ) {
+            $sql   .= ' AND (email LIKE %s OR first_name LIKE %s OR last_name LIKE %s OR company_name LIKE %s)';
+            $like   = '%' . $wpdb->esc_like( $search ) . '%';
+            $params = array( $like, $like, $like, $like );
+        }
+        $sql .= ' ORDER BY created_at DESC LIMIT 200';
+        $rows = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ) ) : $wpdb->get_results( $sql );
+        return rest_ensure_response( $rows );
+    }
+
+    // ─── Admin: Messages ─────────────────────────────────────────────────────
+
+    public static function admin_messages( $request ) {
+        global $wpdb;
+        $unread_only = (bool) $request->get_param( 'unread' );
+        $sql  = "SELECT m.id, m.account_id, m.direction, m.subject, m.body, m.is_read, m.created_at,
+                        a.first_name, a.last_name, a.email, a.company_name
+                 FROM {$wpdb->prefix}cmcalc_messages m
+                 JOIN {$wpdb->prefix}cmcalc_accounts a ON a.id = m.account_id";
+        if ( $unread_only ) $sql .= " WHERE m.direction='in' AND m.is_read=0";
+        $sql .= ' ORDER BY m.created_at DESC LIMIT 200';
+        return rest_ensure_response( $wpdb->get_results( $sql ) );
+    }
+
+    // ─── Admin: Reply to message ──────────────────────────────────────────────
+
+    public static function admin_message_reply( $request ) {
+        global $wpdb;
+        $account_id = intval( $request['account_id'] );
+        $body       = sanitize_textarea_field( $request->get_param( 'body' ) );
+        $subject    = sanitize_text_field( $request->get_param( 'subject' ) ?: 'Antwoord van CleanMasterzz' );
+
+        if ( strlen( $body ) < 5 ) {
+            return new WP_Error( 'empty', 'Bericht is te kort', array( 'status' => 400 ) );
+        }
+        $account = $wpdb->get_row( $wpdb->prepare(
+            "SELECT id, email, first_name FROM {$wpdb->prefix}cmcalc_accounts WHERE id = %d", $account_id
+        ) );
+        if ( ! $account ) {
+            return new WP_Error( 'not_found', 'Klant niet gevonden', array( 'status' => 404 ) );
+        }
+        $wpdb->insert( $wpdb->prefix . 'cmcalc_messages', array(
+            'account_id' => $account_id,
+            'direction'  => 'out',
+            'subject'    => $subject,
+            'body'       => $body,
+            'is_read'    => 1,
+        ) );
+        wp_mail( $account->email,
+            '[CleanMasterzz] ' . $subject,
+            "Beste {$account->first_name},\n\n{$body}\n\nMet vriendelijke groet,\nHet CleanMasterzz Team"
+        );
+        return rest_ensure_response( array( 'success' => true ) );
+    }
+
+    // ─── Admin: Revenue per maand ─────────────────────────────────────────────
+
+    public static function admin_revenue( $request ) {
+        $months = max( 3, min( 24, intval( $request->get_param( 'months' ) ?: 12 ) ) );
+        $result = array();
+        for ( $i = $months - 1; $i >= 0; $i-- ) {
+            $ts    = strtotime( "-{$i} months" );
+            $label = date( 'M Y', $ts );
+            $key   = date( 'Y-m', $ts );
+            $result[ $key ] = array( 'label' => $label, 'revenue' => 0, 'count' => 0 );
+        }
+        $posts = get_posts( array( 'post_type' => 'boeking', 'posts_per_page' => -1, 'post_status' => 'publish',
+            'date_query' => array( array( 'after' => date( 'Y-m-01', strtotime( "-{$months} months" ) ) ) ) ) );
+
+        foreach ( $posts as $p ) {
+            $month = get_the_date( 'Y-m', $p );
+            if ( isset( $result[ $month ] ) ) {
+                $result[ $month ]['revenue'] += floatval( get_post_meta( $p->ID, '_cm_total', true ) );
+                $result[ $month ]['count']++;
+            }
+        }
+        foreach ( $result as &$r ) { $r['revenue'] = round( $r['revenue'], 2 ); }
+        return rest_ensure_response( array_values( $result ) );
+    }
+
+    // ─── Admin: Export bookings CSV ───────────────────────────────────────────
+
+    public static function admin_export_bookings_csv( $request ) {
+        $posts = get_posts( array( 'post_type' => 'boeking', 'posts_per_page' => -1, 'post_status' => 'publish', 'orderby' => 'date', 'order' => 'DESC' ) );
+        $rows  = array( array( 'ID','Datum','Naam','Email','Telefoon','Adres','Stad','Dienst','Status','Totaal','Aangemaakt' ) );
+        foreach ( $posts as $p ) {
+            $rows[] = array(
+                $p->ID,
+                get_post_meta( $p->ID, '_cm_date', true ),
+                get_post_meta( $p->ID, '_cm_naam', true ),
+                get_post_meta( $p->ID, '_cm_email', true ),
+                get_post_meta( $p->ID, '_cm_phone', true ),
+                get_post_meta( $p->ID, '_cm_address', true ),
+                get_post_meta( $p->ID, '_cm_city', true ),
+                get_post_meta( $p->ID, '_cm_service_name', true ),
+                get_post_meta( $p->ID, '_cm_booking_status', true ) ?: 'nieuw',
+                get_post_meta( $p->ID, '_cm_total', true ),
+                get_the_date( 'd-m-Y', $p ),
+            );
+        }
+        $csv = '';
+        foreach ( $rows as $row ) {
+            $csv .= implode( ',', array_map( function( $v ) {
+                return '"' . str_replace( '"', '""', $v ) . '"';
+            }, $row ) ) . "\n";
+        }
+        return new WP_REST_Response( $csv, 200, array(
+            'Content-Type'        => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="boekingen-' . date('Y-m-d') . '.csv"',
         ) );
     }
 }

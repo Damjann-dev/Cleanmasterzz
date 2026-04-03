@@ -159,7 +159,7 @@ class CMCalc_Boss_Portal {
         ) );
 
         if ( ! $inserted ) {
-            wp_send_json_error( 'Registratie mislukt: ' . ( $wpdb->last_error ?: 'Onbekende fout.' ) );
+            wp_send_json_error( 'Registratie mislukt. Probeer opnieuw of neem contact op.' );
         }
 
         $account_id = $wpdb->insert_id;
@@ -240,7 +240,7 @@ class CMCalc_Boss_Portal {
         global $wpdb;
         $table = $wpdb->prefix . self::TABLE_MESSAGES;
         $msgs  = $wpdb->get_results( $wpdb->prepare(
-            "SELECT * FROM $table WHERE account_id = %d ORDER BY created_at DESC LIMIT 50",
+            "SELECT id, direction, subject, body, is_read, created_at FROM $table WHERE account_id = %d ORDER BY created_at DESC LIMIT 50",
             $account->id
         ) );
 
@@ -309,7 +309,7 @@ class CMCalc_Boss_Portal {
             "Beste {$account->first_name},\n\n{$body}\n\nMet vriendelijke groet,\nHet CleanMasterzz team\n\nLog in voor meer details: " . home_url( '/klantportaal/' )
         );
 
-        wp_send_json_success( array( 'message' => 'Antwoord verzonden naar ' . $account->email ) );
+        wp_send_json_success( array( 'message' => 'Antwoord verzonden.' ) );
     }
 
     public static function handle_admin_conversations() {

@@ -1,1 +1,5 @@
 SETUP.md
+
+# Configuratiebestanden met wachtwoorden — NOOIT committen
+license-server/config.php
+admin-portal/config.php
