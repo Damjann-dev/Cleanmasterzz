@@ -5,10 +5,15 @@ class CMCalc_Shortcode {
 
     public static function register() {
         add_shortcode( 'prijscalculator', array( __CLASS__, 'render' ) );
+        // Altijd laden op frontend — ook als shortcode in Elementor-data zit (niet in post_content)
+        add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
     }
 
     public static function render( $atts ) {
-        self::enqueue_assets();
+        // Assets worden via wp_enqueue_scripts geladen, maar als fallback ook hier
+        if ( ! wp_style_is( 'cmcalc-calculator', 'enqueued' ) ) {
+            self::enqueue_assets();
+        }
 
         $styles   = CMCalc_Admin::get_styles();
         $settings = CMCalc_Admin::get_settings();
@@ -19,7 +24,7 @@ class CMCalc_Shortcode {
         return ob_get_clean();
     }
 
-    private static function enqueue_assets() {
+    public static function enqueue_assets() {
         wp_enqueue_style(
             'cmcalc-calculator',
             CMCALC_PLUGIN_URL . 'public/css/calculator.css',
