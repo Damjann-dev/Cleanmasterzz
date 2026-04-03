@@ -3,450 +3,167 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Damjan — Control Panel</title>
+<title>Servicezz — Future-proof business</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04060d;--surface:#080c18;--card:rgba(255,255,255,.035);
+  --border:rgba(255,255,255,.07);--border-h:rgba(255,255,255,.14);
+  --text:#f1f5f9;--muted:#475569;--dim:#94a3b8;
+  --blue:#3b82f6;--purple:#8b5cf6;--green:#10b981;--pink:#ec4899;
+  --grad:linear-gradient(135deg,#3b82f6 0%,#8b5cf6 50%,#ec4899 100%);
+  --font:'Inter',-apple-system,sans-serif;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden}
+.bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 90% 60% at 50% -10%,rgba(59,130,246,.1) 0%,transparent 65%),radial-gradient(ellipse 50% 40% at 85% 60%,rgba(139,92,246,.07) 0%,transparent 50%),radial-gradient(ellipse 40% 30% at 15% 75%,rgba(236,72,153,.05) 0%,transparent 50%)}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:72px 72px}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:72px 24px 96px}
 
-:root {
-  --bg: #04060d;
-  --surface: #080c18;
-  --border: rgba(255,255,255,.06);
-  --border-h: rgba(255,255,255,.14);
-  --text: #f1f5f9;
-  --muted: #475569;
-  --dim: #94a3b8;
-  --blue: #3b82f6;
-  --purple: #8b5cf6;
-  --green: #10b981;
-  --amber: #f59e0b;
-  --pink: #ec4899;
-  --grad-main: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  --grad-blue: linear-gradient(135deg, #1d4ed8, #3b82f6);
-  --grad-purple: linear-gradient(135deg, #6d28d9, #8b5cf6);
-  --grad-green: linear-gradient(135deg, #059669, #10b981);
-  --grad-amber: linear-gradient(135deg, #b45309, #f59e0b);
-  --font: 'Inter', -apple-system, sans-serif;
-}
+/* Hero */
+.hero{text-align:center;margin-bottom:80px;max-width:640px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:100px;padding:6px 14px;margin-bottom:28px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#60a5fa}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:#3b82f6;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+.hero-title{font-size:clamp(40px,6vw,64px);font-weight:900;letter-spacing:-.04em;line-height:1.05;margin-bottom:6px}
+.hero-title-main{color:var(--text)}
+.hero-title-accent{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:clamp(14px,2vw,17px);color:var(--muted);font-weight:400;line-height:1.6;margin-top:16px}
 
-html, body {
-  min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-  overflow-x: hidden;
-}
+/* Obelisk */
+.obelisk{width:100%;max-width:500px}
+.gem-wrap{display:flex;flex-direction:column;align-items:center}
+.gem{width:52px;height:52px;position:relative;display:flex;align-items:center;justify-content:center}
+.gem::before{content:'';position:absolute;inset:0;background:var(--grad);clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%);animation:gemHue 8s linear infinite;opacity:.9}
+.gem::after{content:'';position:absolute;inset:6px;background:var(--bg);clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%)}
+@keyframes gemHue{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+.gem-icon{position:relative;z-index:1;font-size:18px}
+.spine{width:1px;height:28px;background:linear-gradient(180deg,rgba(139,92,246,.5),rgba(59,130,246,.15));margin:0 auto}
+.spine-base{width:1px;height:20px;background:linear-gradient(180deg,rgba(59,130,246,.15),transparent);margin:0 auto}
+.section-label{display:flex;align-items:center;gap:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:20px 0 8px}
+.section-label::before,.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* Animated background */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,.12) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,.08) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 30% at 20% 70%, rgba(236,72,153,.06) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-}
+/* Cards */
+.stack{display:flex;flex-direction:column}
+.portal-card{display:flex;align-items:center;gap:16px;padding:18px 20px;background:var(--card);border:1px solid var(--border);border-top:none;text-decoration:none;position:relative;overflow:hidden;transition:background .18s,border-color .18s}
+.stack .portal-card:first-child{border-top:1px solid var(--border);border-radius:14px 14px 0 0}
+.stack .portal-card:last-child{border-radius:0 0 14px 14px}
+.stack .portal-card:only-child{border-radius:14px}
+.stack .portal-card+.portal-card{border-top:1px solid var(--border)}
+.portal-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--c-accent,var(--blue));opacity:0;transition:opacity .18s}
+.portal-card:hover{background:rgba(255,255,255,.055);border-color:var(--border-h)}
+.portal-card:hover::before{opacity:1}
+.c-icon{width:42px;height:42px;border-radius:11px;flex-shrink:0;background:var(--c-grad,var(--grad));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 16px var(--c-glow,rgba(59,130,246,.25));transition:transform .18s,box-shadow .18s}
+.portal-card:hover .c-icon{transform:scale(1.06);box-shadow:0 6px 24px var(--c-glow,rgba(59,130,246,.35))}
+.c-body{flex:1;min-width:0}
+.c-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.c-desc{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-meta{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.badge{font-size:9px;font-weight:800;padding:2px 8px;border-radius:100px;letter-spacing:.05em;text-transform:uppercase}
+.badge-live{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.2)}
+.badge-soon{background:rgba(71,85,105,.12);color:var(--muted);border:1px solid rgba(71,85,105,.2)}
+.c-arrow{color:var(--muted);font-size:14px;transition:transform .18s,color .18s}
+.portal-card:hover .c-arrow{transform:translateX(3px);color:var(--text)}
 
-/* Grid lines overlay */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px);
-  background-size: 60px 60px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ── Page layout ── */
-.page {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 60px 24px 80px;
-}
-
-/* ── Header ── */
-.header {
-  text-align: center;
-  margin-bottom: 64px;
-}
-.header-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  color: var(--muted);
-  margin-bottom: 16px;
-}
-.header-eyebrow::before,
-.header-eyebrow::after {
-  content: '';
-  display: block;
-  width: 24px;
-  height: 1px;
-  background: var(--border-h);
-}
-.header-title {
-  font-size: clamp(32px, 5vw, 52px);
-  font-weight: 900;
-  letter-spacing: -.03em;
-  line-height: 1.1;
-  background: var(--grad-main);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 12px;
-}
-.header-sub {
-  font-size: 15px;
-  color: var(--muted);
-  font-weight: 400;
-}
-
-/* ── Obelisk ── */
-.obelisk {
-  width: 100%;
-  max-width: 480px;
-  position: relative;
-}
-
-/* Top gem */
-.obelisk-gem {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 0;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.obelisk-gem::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--grad-main);
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  animation: gemPulse 3s ease-in-out infinite;
-}
-.obelisk-gem-inner {
-  position: relative;
-  z-index: 1;
-  font-size: 22px;
-}
-@keyframes gemPulse {
-  0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
-  50% { opacity: .8; transform: scale(1.08) rotate(5deg); }
-}
-
-/* Spine line */
-.obelisk-spine {
-  width: 2px;
-  background: linear-gradient(180deg, rgba(139,92,246,.6) 0%, rgba(59,130,246,.2) 100%);
-  margin: 0 auto;
-  height: 24px;
-}
-
-/* Card stack */
-.obelisk-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.portal-card {
-  position: relative;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-top: none;
-  padding: 20px 24px;
-  cursor: pointer;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  transition: background .2s, border-color .2s;
-  overflow: hidden;
-}
-
-/* First card: rounded top */
-.portal-card:first-child {
-  border-top: 1px solid var(--border);
-  border-radius: 16px 16px 0 0;
-}
-/* Last card: rounded bottom */
-.portal-card:last-child {
-  border-radius: 0 0 16px 16px;
-}
-/* Single card */
-.portal-card:only-child {
-  border-radius: 16px;
-}
-
-.portal-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: var(--card-accent, var(--blue));
-  opacity: 0;
-  transition: opacity .2s;
-}
-
-.portal-card:hover {
-  background: rgba(255,255,255,.04);
-  border-color: var(--border-h);
-}
-.portal-card:hover::before { opacity: 1; }
-
-/* Card icon */
-.card-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: var(--card-grad, var(--grad-blue));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
-  box-shadow: 0 4px 16px var(--card-shadow, rgba(59,130,246,.3));
-  transition: transform .2s, box-shadow .2s;
-}
-.portal-card:hover .card-icon {
-  transform: scale(1.05);
-  box-shadow: 0 6px 24px var(--card-shadow, rgba(59,130,246,.4));
-}
-
-/* Card text */
-.card-body { flex: 1; min-width: 0; }
-.card-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-.card-desc {
-  font-size: 12px;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Card meta */
-.card-meta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
-.badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 100px;
-  letter-spacing: .04em;
-}
-.badge-live { background: rgba(16,185,129,.15); color: #34d399; border: 1px solid rgba(16,185,129,.25); }
-.badge-soon { background: rgba(71,85,105,.15); color: var(--muted); border: 1px solid rgba(71,85,105,.25); }
-.badge-new  { background: rgba(59,130,246,.15); color: #60a5fa; border: 1px solid rgba(59,130,246,.25); }
-
-.card-arrow {
-  color: var(--muted);
-  font-size: 16px;
-  transition: transform .2s, color .2s;
-}
-.portal-card:hover .card-arrow { transform: translateX(3px); color: var(--text); }
-
-/* Divider between sections */
-.obelisk-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 18px 0 4px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  color: var(--muted);
-}
-.obelisk-divider::before, .obelisk-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-/* Bottom spine + base */
-.obelisk-base {
-  width: 2px;
-  height: 20px;
-  background: linear-gradient(180deg, rgba(59,130,246,.2) 0%, transparent 100%);
-  margin: 0 auto;
-}
-.obelisk-foot {
-  width: 60px;
-  height: 3px;
-  background: var(--grad-main);
-  margin: 0 auto;
-  border-radius: 100px;
-  opacity: .4;
-}
+/* Sneak peek */
+.sneak{margin-top:64px;width:100%;max-width:500px;border:1px solid rgba(139,92,246,.2);border-radius:20px;background:linear-gradient(135deg,rgba(59,130,246,.05) 0%,rgba(139,92,246,.08) 50%,rgba(236,72,153,.05) 100%);overflow:hidden;position:relative}
+.sneak-inner{position:relative;z-index:1;padding:32px 28px 28px}
+.sneak-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);border-radius:100px;padding:4px 12px;margin-bottom:20px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#a78bfa}
+.sneak-title{font-size:22px;font-weight:900;letter-spacing:-.02em;margin-bottom:8px}
+.sneak-title span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sneak-body{font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:24px}
+.sneak-features{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.sneak-feat{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--dim)}
+.sneak-feat-dot{width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.sneak-cta{display:inline-flex;align-items:center;gap:8px;background:var(--grad);border-radius:10px;padding:11px 20px;font-size:13px;font-weight:700;color:#fff;text-decoration:none;transition:opacity .18s,transform .18s}
+.sneak-cta:hover{opacity:.9;transform:translateY(-1px)}
+.sneak-cta-sub{font-size:11px;color:var(--muted);margin-top:10px}
 
 /* Footer */
-.footer {
-  margin-top: 48px;
-  text-align: center;
-  font-size: 12px;
-  color: var(--muted);
-}
+.footer{margin-top:64px;text-align:center}
+.footer-logo{font-size:15px;font-weight:800;letter-spacing:-.01em;margin-bottom:8px}
+.footer-logo span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.footer-copy{font-size:11px;color:var(--muted)}
 
-/* Disabled/soon cards */
-.portal-card.soon {
-  opacity: .5;
-  pointer-events: none;
-  cursor: default;
-}
-
-/* Separator line inside stack */
-.portal-card + .portal-card {
-  border-top: 1px solid var(--border);
-}
-
-@media (max-width: 520px) {
-  .page { padding: 40px 16px 60px; }
-  .header { margin-bottom: 48px; }
-  .card-desc { display: none; }
-}
+@media(max-width:540px){.hero{margin-bottom:56px}.c-desc{display:none}.sneak-features{grid-template-columns:1fr}.sneak-inner{padding:24px 20px 20px}}
 </style>
 </head>
 <body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
 <div class="page">
 
-  <!-- Header -->
-  <div class="header">
-    <div class="header-eyebrow">Damjan-dev · Control Panel</div>
-    <h1 class="header-title">Damjan Portals</h1>
-    <p class="header-sub">Centrale toegang tot alle dashboards &amp; beheeromgevingen</p>
+  <div class="hero">
+    <div class="hero-badge"><span class="hero-badge-dot"></span>Alle systemen operationeel</div>
+    <h1 class="hero-title">
+      <span class="hero-title-main">Future-proof </span><br>
+      <span class="hero-title-accent">business software.</span>
+    </h1>
+    <p class="hero-sub">Eén ecosysteem. Slimme plugins, geautomatiseerde workflows en premium dashboards — gebouwd om mee te groeien met jouw bedrijf.</p>
   </div>
 
-  <!-- Obelisk -->
   <div class="obelisk">
-
-    <!-- Gem top -->
-    <div class="obelisk-gem">
-      <div class="obelisk-gem-inner">◆</div>
+    <div class="gem-wrap">
+      <div class="gem"><span class="gem-icon">◆</span></div>
     </div>
-    <div class="obelisk-spine"></div>
+    <div class="spine"></div>
 
-    <!-- CleanMasterzz sectie -->
-    <div class="obelisk-divider">CleanMasterzz</div>
-
-    <div class="obelisk-cards">
-      <a href="https://servicezz.cleanmasterzz.nl" target="_blank" class="portal-card"
-         style="--card-accent:#3b82f6;--card-grad:var(--grad-blue);--card-shadow:rgba(59,130,246,.3)">
-        <div class="card-icon">🧹</div>
-        <div class="card-body">
-          <div class="card-name">CleanMasterzz Admin</div>
-          <div class="card-desc">Boekingen, klanten, berichten, analytics</div>
-        </div>
-        <div class="card-meta">
-          <span class="badge badge-live">LIVE</span>
-          <span class="card-arrow">→</span>
-        </div>
+    <div class="section-label">CleanMasterzz</div>
+    <div class="stack">
+      <a href="https://servicezz.cleanmasterzz.nl" target="_blank" class="portal-card" style="--c-accent:#3b82f6;--c-grad:linear-gradient(135deg,#1d4ed8,#3b82f6);--c-glow:rgba(59,130,246,.28)">
+        <div class="c-icon">🧹</div>
+        <div class="c-body"><div class="c-name">CleanMasterzz Dashboard</div><div class="c-desc">Boekingen · klanten · berichten · analytics</div></div>
+        <div class="c-meta"><span class="badge badge-live">Live</span><span class="c-arrow">→</span></div>
       </a>
-
-      <a href="https://cleanmasterzz.nl/wp-admin" target="_blank" class="portal-card"
-         style="--card-accent:#6366f1;--card-grad:linear-gradient(135deg,#4338ca,#6366f1);--card-shadow:rgba(99,102,241,.3)">
-        <div class="card-icon">⚙️</div>
-        <div class="card-body">
-          <div class="card-name">WordPress Admin</div>
-          <div class="card-desc">cleanmasterzz.nl backend</div>
-        </div>
-        <div class="card-meta">
-          <span class="badge badge-live">LIVE</span>
-          <span class="card-arrow">→</span>
-        </div>
+      <a href="https://cleanmasterzz.nl/wp-admin" target="_blank" class="portal-card" style="--c-accent:#6366f1;--c-grad:linear-gradient(135deg,#4338ca,#6366f1);--c-glow:rgba(99,102,241,.25)">
+        <div class="c-icon">⚙️</div>
+        <div class="c-body"><div class="c-name">WordPress Admin</div><div class="c-desc">Plugin instellingen · diensten · stijl</div></div>
+        <div class="c-meta"><span class="badge badge-live">Live</span><span class="c-arrow">→</span></div>
       </a>
-
-      <a href="https://manage.cleanmasterzz.nl" target="_blank" class="portal-card"
-         style="--card-accent:#10b981;--card-grad:var(--grad-green);--card-shadow:rgba(16,185,129,.3)">
-        <div class="card-icon">🏠</div>
-        <div class="card-body">
-          <div class="card-name">Estate Management</div>
-          <div class="card-desc">Planning &amp; vastgoedbeheer</div>
-        </div>
-        <div class="card-meta">
-          <span class="badge badge-live">LIVE</span>
-          <span class="card-arrow">→</span>
-        </div>
+      <a href="https://manage.cleanmasterzz.nl" target="_blank" class="portal-card" style="--c-accent:#10b981;--c-grad:linear-gradient(135deg,#059669,#10b981);--c-glow:rgba(16,185,129,.25)">
+        <div class="c-icon">🏠</div>
+        <div class="c-body"><div class="c-name">Estate Management</div><div class="c-desc">Planning · adressen · medewerkers</div></div>
+        <div class="c-meta"><span class="badge badge-live">Live</span><span class="c-arrow">→</span></div>
       </a>
     </div>
 
-    <!-- Servicezz sectie -->
-    <div class="obelisk-divider">Servicezz Platform</div>
-
-    <div class="obelisk-cards">
-      <a href="https://portal.damjanplugin.nl" target="_blank" class="portal-card"
-         style="--card-accent:#8b5cf6;--card-grad:var(--grad-purple);--card-shadow:rgba(139,92,246,.3)">
-        <div class="card-icon">⚡</div>
-        <div class="card-body">
-          <div class="card-name">Licentie Portal</div>
-          <div class="card-desc">Beheer plugin licenties &amp; feature flags</div>
-        </div>
-        <div class="card-meta">
-          <span class="badge badge-live">LIVE</span>
-          <span class="card-arrow">→</span>
-        </div>
+    <div class="section-label">Servicezz Platform</div>
+    <div class="stack">
+      <a href="https://portal.damjanplugin.nl" target="_blank" class="portal-card" style="--c-accent:#8b5cf6;--c-grad:linear-gradient(135deg,#6d28d9,#8b5cf6);--c-glow:rgba(139,92,246,.28)">
+        <div class="c-icon">⚡</div>
+        <div class="c-body"><div class="c-name">Licentie Beheer</div><div class="c-desc">Tiers · feature flags · activaties · API logs</div></div>
+        <div class="c-meta"><span class="badge badge-live">Live</span><span class="c-arrow">→</span></div>
       </a>
-
-      <a href="https://servicezz.damjanplugin.nl" target="_blank" class="portal-card"
-         style="--card-accent:#ec4899;--card-grad:linear-gradient(135deg,#be185d,#ec4899);--card-shadow:rgba(236,72,153,.3)">
-        <div class="card-icon">🌐</div>
-        <div class="card-body">
-          <div class="card-name">Servicezz Website</div>
-          <div class="card-desc">Marketing &amp; verkoop platform</div>
-        </div>
-        <div class="card-meta">
-          <span class="badge badge-live">LIVE</span>
-          <span class="card-arrow">→</span>
-        </div>
+      <a href="https://servicezz.damjanplugin.nl" target="_blank" class="portal-card" style="--c-accent:#ec4899;--c-grad:linear-gradient(135deg,#be185d,#ec4899);--c-glow:rgba(236,72,153,.25)">
+        <div class="c-icon">🌐</div>
+        <div class="c-body"><div class="c-name">Servicezz Website</div><div class="c-desc">Marketing · downloads · documentatie</div></div>
+        <div class="c-meta"><span class="badge badge-live">Live</span><span class="c-arrow">→</span></div>
       </a>
     </div>
+    <div class="spine-base"></div>
+  </div>
 
-    <!-- Toekomst -->
-    <div class="obelisk-divider">Aankomend</div>
-
-    <div class="obelisk-cards">
-      <div class="portal-card soon"
-           style="--card-accent:#f59e0b;--card-grad:var(--grad-amber);--card-shadow:rgba(245,158,11,.2)">
-        <div class="card-icon">🏗️</div>
-        <div class="card-body">
-          <div class="card-name">Volgende Plugin</div>
-          <div class="card-desc">damjanplugin.nl — in ontwikkeling</div>
-        </div>
-        <div class="card-meta">
-          <span class="badge badge-soon">BINNENKORT</span>
-        </div>
+  <div class="sneak">
+    <div class="sneak-inner">
+      <div class="sneak-tag">✦ Binnenkort beschikbaar</div>
+      <h2 class="sneak-title">Introduceer <span>Servicezz</span></h2>
+      <p class="sneak-body">Het complete plugin platform voor servicebedrijven. Van calculator tot klantportaal, van automatische facturatie tot slimme planning — alles in één licentie.</p>
+      <div class="sneak-features">
+        <div class="sneak-feat"><div class="sneak-feat-dot" style="background:rgba(59,130,246,.15);color:#60a5fa">📊</div>Slimme calculator</div>
+        <div class="sneak-feat"><div class="sneak-feat-dot" style="background:rgba(16,185,129,.15);color:#34d399">📋</div>Boekingsbeheer</div>
+        <div class="sneak-feat"><div class="sneak-feat-dot" style="background:rgba(139,92,246,.15);color:#a78bfa">👤</div>Klantportaal</div>
+        <div class="sneak-feat"><div class="sneak-feat-dot" style="background:rgba(245,158,11,.15);color:#fbbf24">📄</div>PDF facturen</div>
+        <div class="sneak-feat"><div class="sneak-feat-dot" style="background:rgba(236,72,153,.15);color:#f472b6">📍</div>Multi-locatie</div>
+        <div class="sneak-feat"><div class="sneak-feat-dot" style="background:rgba(6,182,212,.15);color:#22d3ee">🔑</div>Licentiebeheer</div>
       </div>
+      <a href="https://servicezz.damjanplugin.nl" target="_blank" class="sneak-cta">Bekijk het platform →</a>
+      <p class="sneak-cta-sub">Binnenkort: prijzen, tiers en directe aankoop</p>
     </div>
-
-    <!-- Base -->
-    <div class="obelisk-base"></div>
-    <div class="obelisk-foot"></div>
-
-  </div><!-- /obelisk -->
+  </div>
 
   <div class="footer">
-    &copy; <?=date('Y')?> Damjan-dev &nbsp;·&nbsp; Alle rechten voorbehouden
+    <div class="footer-logo">Damjan<span>dev</span></div>
+    <div class="footer-copy">&copy; 2026 &middot; Alle rechten voorbehouden</div>
   </div>
 
 </div>
