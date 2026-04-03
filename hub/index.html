@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Damjan — Control Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #04060d;
+  --surface: #080c18;
+  --border: rgba(255,255,255,.06);
+  --border-h: rgba(255,255,255,.14);
+  --text: #f1f5f9;
+  --muted: #475569;
+  --dim: #94a3b8;
+  --blue: #3b82f6;
+  --purple: #8b5cf6;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --pink: #ec4899;
+  --grad-main: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  --grad-blue: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  --grad-purple: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  --grad-green: linear-gradient(135deg, #059669, #10b981);
+  --grad-amber: linear-gradient(135deg, #b45309, #f59e0b);
+  --font: 'Inter', -apple-system, sans-serif;
+}
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  overflow-x: hidden;
+}
+
+/* Animated background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,.08) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 20% 70%, rgba(236,72,153,.06) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Grid lines overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Page layout ── */
+.page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 24px 80px;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+.header-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.header-eyebrow::before,
+.header-eyebrow::after {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--border-h);
+}
+.header-title {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 900;
+  letter-spacing: -.03em;
+  line-height: 1.1;
+  background: var(--grad-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+.header-sub {
+  font-size: 15px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* ── Obelisk ── */
+.obelisk {
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+}
+
+/* Top gem */
+.obelisk-gem {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.obelisk-gem::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--grad-main);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  animation: gemPulse 3s ease-in-out infinite;
+}
+.obelisk-gem-inner {
+  position: relative;
+  z-index: 1;
+  font-size: 22px;
+}
+@keyframes gemPulse {
+  0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  50% { opacity: .8; transform: scale(1.08) rotate(5deg); }
+}
+
+/* Spine line */
+.obelisk-spine {
+  width: 2px;
+  background: linear-gradient(180deg, rgba(139,92,246,.6) 0%, rgba(59,130,246,.2) 100%);
+  margin: 0 auto;
+  height: 24px;
+}
+
+/* Card stack */
+.obelisk-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.portal-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 20px 24px;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  transition: background .2s, border-color .2s;
+  overflow: hidden;
+}
+
+/* First card: rounded top */
+.portal-card:first-child {
+  border-top: 1px solid var(--border);
+  border-radius: 16px 16px 0 0;
+}
+/* Last card: rounded bottom */
+.portal-card:last-child {
+  border-radius: 0 0 16px 16px;
+}
+/* Single card */
+.portal-card:only-child {
+  border-radius: 16px;
+}
+
+.portal-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--card-accent, var(--blue));
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.portal-card:hover {
+  background: rgba(255,255,255,.04);
+  border-color: var(--border-h);
+}
+.portal-card:hover::before { opacity: 1; }
+
+/* Card icon */
+.card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--card-grad, var(--grad-blue));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px var(--card-shadow, rgba(59,130,246,.3));
+  transition: transform .2s, box-shadow .2s;
+}
+.portal-card:hover .card-icon {
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px var(--card-shadow, rgba(59,130,246,.4));
+}
+
+/* Card text */
+.card-body { flex: 1; min-width: 0; }
+.card-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.card-desc {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Card meta */
+.card-meta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 100px;
+  letter-spacing: .04em;
+}
+.badge-live { background: rgba(16,185,129,.15); color: #34d399; border: 1px solid rgba(16,185,129,.25); }
+.badge-soon { background: rgba(71,85,105,.15); color: var(--muted); border: 1px solid rgba(71,85,105,.25); }
+.badge-new  { background: rgba(59,130,246,.15); color: #60a5fa; border: 1px solid rgba(59,130,246,.25); }
+
+.card-arrow {
+  color: var(--muted);
+  font-size: 16px;
+  transition: transform .2s, color .2s;
+}
+.portal-card:hover .card-arrow { transform: translateX(3px); color: var(--text); }
+
+/* Divider between sections */
+.obelisk-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+}
+.obelisk-divider::before, .obelisk-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Bottom spine + base */
+.obelisk-base {
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(180deg, rgba(59,130,246,.2) 0%, transparent 100%);
+  margin: 0 auto;
+}
+.obelisk-foot {
+  width: 60px;
+  height: 3px;
+  background: var(--grad-main);
+  margin: 0 auto;
+  border-radius: 100px;
+  opacity: .4;
+}
+
+/* Footer */
+.footer {
+  margin-top: 48px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Disabled/soon cards */
+.portal-card.soon {
+  opacity: .5;
+  pointer-events: none;
+  cursor: default;
+}
+
+/* Separator line inside stack */
+.portal-card + .portal-card {
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 520px) {
+  .page { padding: 40px 16px 60px; }
+  .header { margin-bottom: 48px; }
+  .card-desc { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">Damjan-dev · Control Panel</div>
+    <h1 class="header-title">Damjan Portals</h1>
+    <p class="header-sub">Centrale toegang tot alle dashboards &amp; beheeromgevingen</p>
+  </div>
+
+  <!-- Obelisk -->
+  <div class="obelisk">
+
+    <!-- Gem top -->
+    <div class="obelisk-gem">
+      <div class="obelisk-gem-inner">◆</div>
+    </div>
+    <div class="obelisk-spine"></div>
+
+    <!-- CleanMasterzz sectie -->
+    <div class="obelisk-divider">CleanMasterzz</div>
+
+    <div class="obelisk-cards">
+      <a href="https://servicezz.cleanmasterzz.nl" target="_blank" class="portal-card"
+         style="--card-accent:#3b82f6;--card-grad:var(--grad-blue);--card-shadow:rgba(59,130,246,.3)">
+        <div class="card-icon">🧹</div>
+        <div class="card-body">
+          <div class="card-name">CleanMasterzz Admin</div>
+          <div class="card-desc">Boekingen, klanten, berichten, analytics</div>
+        </div>
+        <div class="card-meta">
+          <span class="badge badge-live">LIVE</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="https://cleanmasterzz.nl/wp-admin" target="_blank" class="portal-card"
+         style="--card-accent:#6366f1;--card-grad:linear-gradient(135deg,#4338ca,#6366f1);--card-shadow:rgba(99,102,241,.3)">
+        <div class="card-icon">⚙️</div>
+        <div class="card-body">
+          <div class="card-name">WordPress Admin</div>
+          <div class="card-desc">cleanmasterzz.nl backend</div>
+        </div>
+        <div class="card-meta">
+          <span class="badge badge-live">LIVE</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="https://manage.cleanmasterzz.nl" target="_blank" class="portal-card"
+         style="--card-accent:#10b981;--card-grad:var(--grad-green);--card-shadow:rgba(16,185,129,.3)">
+        <div class="card-icon">🏠</div>
+        <div class="card-body">
+          <div class="card-name">Estate Management</div>
+          <div class="card-desc">Planning &amp; vastgoedbeheer</div>
+        </div>
+        <div class="card-meta">
+          <span class="badge badge-live">LIVE</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Servicezz sectie -->
+    <div class="obelisk-divider">Servicezz Platform</div>
+
+    <div class="obelisk-cards">
+      <a href="https://portal.damjanplugin.nl" target="_blank" class="portal-card"
+         style="--card-accent:#8b5cf6;--card-grad:var(--grad-purple);--card-shadow:rgba(139,92,246,.3)">
+        <div class="card-icon">⚡</div>
+        <div class="card-body">
+          <div class="card-name">Licentie Portal</div>
+          <div class="card-desc">Beheer plugin licenties &amp; feature flags</div>
+        </div>
+        <div class="card-meta">
+          <span class="badge badge-live">LIVE</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="https://servicezz.damjanplugin.nl" target="_blank" class="portal-card"
+         style="--card-accent:#ec4899;--card-grad:linear-gradient(135deg,#be185d,#ec4899);--card-shadow:rgba(236,72,153,.3)">
+        <div class="card-icon">🌐</div>
+        <div class="card-body">
+          <div class="card-name">Servicezz Website</div>
+          <div class="card-desc">Marketing &amp; verkoop platform</div>
+        </div>
+        <div class="card-meta">
+          <span class="badge badge-live">LIVE</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Toekomst -->
+    <div class="obelisk-divider">Aankomend</div>
+
+    <div class="obelisk-cards">
+      <div class="portal-card soon"
+           style="--card-accent:#f59e0b;--card-grad:var(--grad-amber);--card-shadow:rgba(245,158,11,.2)">
+        <div class="card-icon">🏗️</div>
+        <div class="card-body">
+          <div class="card-name">Volgende Plugin</div>
+          <div class="card-desc">damjanplugin.nl — in ontwikkeling</div>
+        </div>
+        <div class="card-meta">
+          <span class="badge badge-soon">BINNENKORT</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Base -->
+    <div class="obelisk-base"></div>
+    <div class="obelisk-foot"></div>
+
+  </div><!-- /obelisk -->
+
+  <div class="footer">
+    &copy; <?=date('Y')?> Damjan-dev &nbsp;·&nbsp; Alle rechten voorbehouden
+  </div>
+
+</div>
+</body>
+</html>
