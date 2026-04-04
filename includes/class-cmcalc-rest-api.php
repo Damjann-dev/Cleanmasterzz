@@ -144,6 +144,17 @@ class CMCalc_REST_API {
         register_rest_route( $ns, '/admin/discount-codes/(?P<code>[a-zA-Z0-9_\-]+)', array(
             array( 'methods' => 'DELETE', 'callback' => array( __CLASS__, 'admin_discount_codes_delete' ), 'permission_callback' => $admin_perm ),
         ) );
+
+        // ─── License & Style ──────────────────────────────────────────────────
+        register_rest_route( $ns, '/admin/license', array(
+            'methods'             => 'GET',
+            'callback'            => array( __CLASS__, 'admin_license_get' ),
+            'permission_callback' => $admin_perm,
+        ) );
+        register_rest_route( $ns, '/admin/style', array(
+            array( 'methods' => 'GET', 'callback' => array( __CLASS__, 'admin_style_get' ),    'permission_callback' => $admin_perm ),
+            array( 'methods' => 'PUT', 'callback' => array( __CLASS__, 'admin_style_update' ), 'permission_callback' => $admin_perm ),
+        ) );
     }
 
     /**
@@ -1474,5 +1485,71 @@ class CMCalc_REST_API {
         unset( $codes[ $code ] );
         update_option( 'cmcalc_discount_codes', $codes );
         return rest_ensure_response( array( 'deleted' => true, 'code' => $code ) );
+    }
+
+    // =========================================================================
+    // LICENSE
+    // =========================================================================
+
+    public static function admin_license_get() {
+        $data = get_option( CMCalc_License::OPT_DATA, array() );
+        $key  = get_option( CMCalc_License::OPT_KEY, '' );
+        return rest_ensure_response( array(
+            'key'        => $key ? substr( $key, 0, 8 ) . '...' : '',
+            'tier'       => $data['tier']        ?? 'free',
+            'tier_label' => CMCalc_License::get_tier_label(),
+            'domain'     => $data['domain']      ?? '',
+            'status'     => $data['status']      ?? 'inactive',
+            'expires_at' => $data['expires_at']  ?? '',
+            'lifetime'   => ! empty( $data['lifetime'] ),
+        ) );
+    }
+
+    // =========================================================================
+    // STYLE
+    // =========================================================================
+
+    public static function admin_style_get() {
+        $styles = wp_parse_args( get_option( 'cmcalc_styles', array() ), array(
+            'primary_color'    => '#3b82f6',
+            'secondary_color'  => '#10b981',
+            'accent_color'     => '#6366f1',
+            'text_color'       => '#1e293b',
+            'bg_color'         => '#ffffff',
+            'border_color'     => '#e2e8f0',
+            'border_radius'    => 12,
+            'btn_radius'       => 8,
+            'max_width'        => 900,
+            'font_size_base'   => 15,
+            'font_size_title'  => 22,
+            'shadow_enabled'   => true,
+            'shadow_intensity' => 'medium',
+            'spacing'          => 'normal',
+        ) );
+        return rest_ensure_response( $styles );
+    }
+
+    public static function admin_style_update( $request ) {
+        $data    = $request->get_json_params() ?: array();
+        $current = get_option( 'cmcalc_styles', array() );
+        $colors  = array( 'primary_color', 'secondary_color', 'accent_color', 'text_color', 'bg_color', 'border_color' );
+        foreach ( $colors as $c ) {
+            if ( isset( $data[ $c ] ) && preg_match( '/^#[0-9a-fA-F]{3,8}$/', $data[ $c ] ) ) {
+                $current[ $c ] = $data[ $c ];
+            }
+        }
+        $ints = array( 'border_radius', 'btn_radius', 'max_width', 'font_size_base', 'font_size_title' );
+        foreach ( $ints as $f ) {
+            if ( isset( $data[ $f ] ) ) $current[ $f ] = intval( $data[ $f ] );
+        }
+        if ( isset( $data['shadow_enabled'] ) )   $current['shadow_enabled']   = (bool) $data['shadow_enabled'];
+        if ( isset( $data['shadow_intensity'] ) && in_array( $data['shadow_intensity'], array( 'light', 'medium', 'strong' ) ) ) {
+            $current['shadow_intensity'] = $data['shadow_intensity'];
+        }
+        if ( isset( $data['spacing'] ) && in_array( $data['spacing'], array( 'compact', 'normal', 'spacious' ) ) ) {
+            $current['spacing'] = $data['spacing'];
+        }
+        update_option( 'cmcalc_styles', $current );
+        return rest_ensure_response( array( 'success' => true ) );
     }
 }

@@ -73,7 +73,7 @@ foreach ($companies as $c) { $company_map[$c['id']] = $c['name']; }
 <?php else: ?>
 <div class="topbar">
     <h1 class="page-title">Werkgebieden</h1>
-    <a href="/?action=areas&edit=new" class="btn btn-primary btn-sm">+ Nieuw werkgebied</a>
+    <a href="/?action=new_area" class="btn btn-primary btn-sm">+ Nieuw werkgebied</a>
 </div>
 <div class="card">
     <table>

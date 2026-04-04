@@ -1,7 +1,9 @@
 <?php
-// $settings = array from wp_api('settings'), $discount_codes = array
-$s = $settings ?: [];
+// $settings, $discount_codes, $style, $license from index.php
+$s    = $settings ?: [];
 $smtp = $s['smtp'] ?? [];
+$st   = $style   ?: [];
+$lic  = $license ?: [];
 ?>
 <div class="topbar">
     <h1 class="page-title">Instellingen</h1>
@@ -12,7 +14,7 @@ $smtp = $s['smtp'] ?? [];
 
 <!-- Tab navigation -->
 <div style="display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0">
-    <?php foreach (['algemeen'=>'Algemeen','email'=>'E-mail & SMTP','btw'=>'BTW & Prijzen','codes'=>'Kortingscodes'] as $t=>$l): ?>
+    <?php foreach (['algemeen'=>'Algemeen','email'=>'E-mail & SMTP','btw'=>'BTW & Prijzen','stijl'=>'Stijl','codes'=>'Kortingscodes','licentie'=>'Licentie'] as $t=>$l): ?>
     <button type="button" class="settings-tab-btn <?= ($t==='algemeen'?'active':'') ?>" data-tab="<?= $t ?>"
         style="padding:8px 18px;background:none;border:none;border-bottom:2px solid <?= ($t==='algemeen'?'var(--primary)':'transparent') ?>;color:<?= ($t==='algemeen'?'var(--text)':'var(--muted)') ?>;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:-1px;transition:.15s">
         <?= h($l) ?>
@@ -167,6 +169,107 @@ $smtp = $s['smtp'] ?? [];
         <?php endforeach; endif; ?>
         </tbody>
     </table>
+</div>
+</div>
+
+<!-- Stijl -->
+<div class="settings-tab" id="tab-stijl" style="display:none">
+<form method="POST" action="/?action=save_style">
+<div class="card" style="padding:24px;margin-bottom:16px">
+    <h3 style="font-size:13px;font-weight:700;margin-bottom:16px">Kleuren</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        <?php foreach ([
+            'primary_color'   => 'Primaire kleur',
+            'secondary_color' => 'Secundaire kleur',
+            'accent_color'    => 'Accentkleur',
+            'text_color'      => 'Tekstkleur',
+            'bg_color'        => 'Achtergrond',
+            'border_color'    => 'Randkleur',
+        ] as $key => $label): ?>
+        <div class="form-group">
+            <label><?= h($label) ?></label>
+            <div style="display:flex;gap:8px;align-items:center">
+                <input type="color" name="<?= h($key) ?>" value="<?= h($st[$key] ?? '#000000') ?>" style="width:44px;height:38px;padding:2px;border-radius:6px;cursor:pointer;flex-shrink:0">
+                <input type="text"  name="<?= h($key) ?>_txt" value="<?= h($st[$key] ?? '') ?>" style="font-size:12px;font-family:monospace"
+                    oninput="document.querySelector('[name=<?= h($key) ?>]').value=this.value">
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<div class="card" style="padding:24px;margin-bottom:16px">
+    <h3 style="font-size:13px;font-weight:700;margin-bottom:16px">Afmetingen & stijl</h3>
+    <div class="form-row">
+        <div class="form-group"><label>Max breedte (px)</label><input type="number" name="max_width" value="<?= h($st['max_width'] ?? 900) ?>" min="400" max="1400"></div>
+        <div class="form-group"><label>Hoekradius container (px)</label><input type="number" name="border_radius" value="<?= h($st['border_radius'] ?? 12) ?>" min="0" max="32"></div>
+    </div>
+    <div class="form-row">
+        <div class="form-group"><label>Hoekradius knoppen (px)</label><input type="number" name="btn_radius" value="<?= h($st['btn_radius'] ?? 8) ?>" min="0" max="32"></div>
+        <div class="form-group"><label>Lettergrootte basis (px)</label><input type="number" name="font_size_base" value="<?= h($st['font_size_base'] ?? 15) ?>" min="12" max="20"></div>
+    </div>
+    <div class="form-row">
+        <div class="form-group"><label>Lettergrootte titel (px)</label><input type="number" name="font_size_title" value="<?= h($st['font_size_title'] ?? 22) ?>" min="16" max="32"></div>
+        <div class="form-group"><label>Schaduwintensiteit</label>
+            <select name="shadow_intensity">
+                <?php foreach (['light'=>'Licht','medium'=>'Normaal','strong'=>'Sterk'] as $v=>$l): ?>
+                <option value="<?= h($v) ?>" <?= ($st['shadow_intensity']??'medium')===$v?'selected':'' ?>><?= h($l) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group"><label>Witruimte</label>
+            <select name="spacing">
+                <?php foreach (['compact'=>'Compact','normal'=>'Normaal','spacious'=>'Ruim'] as $v=>$l): ?>
+                <option value="<?= h($v) ?>" <?= ($st['spacing']??'normal')===$v?'selected':'' ?>><?= h($l) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:0">
+                <input type="checkbox" name="shadow_enabled" value="1" <?= !empty($st['shadow_enabled'])?'checked':'' ?>>
+                <span style="font-size:13px;color:var(--dim)">Schaduw inschakelen</span>
+            </label>
+        </div>
+    </div>
+</div>
+<button type="submit" class="btn btn-primary">Stijl opslaan</button>
+</form>
+</div>
+
+<!-- Licentie -->
+<div class="settings-tab" id="tab-licentie" style="display:none">
+<?php
+$tier_colors = ['free'=>'#64748b','pro'=>'#3b82f6','boss'=>'#8b5cf6','agency'=>'#f59e0b'];
+$lic_tier    = $lic['tier'] ?? 'free';
+$tier_color  = $tier_colors[$lic_tier] ?? '#64748b';
+?>
+<div class="card" style="padding:24px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div style="background:<?= h($tier_color) ?>22;border:1px solid <?= h($tier_color) ?>44;border-radius:10px;padding:14px 20px;text-align:center;min-width:120px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:<?= h($tier_color) ?>">Huidig plan</div>
+            <div style="font-size:22px;font-weight:800;color:<?= h($tier_color) ?>;margin-top:4px"><?= h($lic['tier_label'] ?? 'Gratis') ?></div>
+        </div>
+        <div>
+            <div style="font-size:13px;color:var(--dim);margin-bottom:6px">
+                <strong style="color:var(--text)">Domein:</strong> <?= h($lic['domain'] ?? '—') ?>
+            </div>
+            <div style="font-size:13px;color:var(--dim);margin-bottom:6px">
+                <strong style="color:var(--text)">Status:</strong>
+                <?php if (!empty($lic['lifetime'])): ?>
+                    <span style="color:#6ee7b7;font-weight:700">Lifetime</span>
+                <?php elseif (!empty($lic['expires_at'])): ?>
+                    <?= h($lic['expires_at']) ?>
+                <?php else: ?>
+                    —
+                <?php endif; ?>
+            </div>
+            <div style="font-size:13px;color:var(--dim)">
+                <strong style="color:var(--text)">Licentiesleutel:</strong> <?= h($lic['key'] ?? '—') ?>
+            </div>
+        </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted)">Licentie beheren kan via <a href="<?= h(($settings['wp_site_url'] ?? '') ?: '#') ?>/wp-admin/" target="_blank">WordPress Admin → Licentie</a>.</p>
 </div>
 </div>
 

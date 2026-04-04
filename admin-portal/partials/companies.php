@@ -74,7 +74,7 @@ if ($editing) {
 <?php else: ?>
 <div class="topbar">
     <h1 class="page-title">Bedrijven</h1>
-    <a href="/?action=companies&edit=new" class="btn btn-primary btn-sm">+ Nieuw bedrijf</a>
+    <a href="/?action=new_company" class="btn btn-primary btn-sm">+ Nieuw bedrijf</a>
 </div>
 <div class="card">
     <table>

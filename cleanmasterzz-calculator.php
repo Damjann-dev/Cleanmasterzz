@@ -3,7 +3,7 @@
  * Plugin Name: Cleanmasterzz Calculator
  * Plugin URI:  https://cleanmasterzz.nl
  * Description: Professionele prijscalculator, boekingsbeheer, analytics en klantportaal voor schoonmaakbedrijven.
- * Version:     1.3.3
+ * Version:     1.4.0
  * Author:      CleanMasterzz
  * Text Domain: cleanmasterzz-calculator
  * Requires at least: 6.0
@@ -12,7 +12,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'CMCALC_VERSION',    '1.3.3' );
+define( 'CMCALC_VERSION',    '1.4.0' );
 define( 'CMCALC_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CMCALC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 

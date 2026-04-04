@@ -124,6 +124,12 @@ if ( $action === 'delete_service' ) {
 }
 
 // ─── Company CRUD ─────────────────────────────────────────────────────────────
+if ( $action === 'new_company' ) {
+    require_login();
+    $result = wp_api( 'companies', 'POST', array( 'name' => 'Nieuw bedrijf', 'active' => true ) );
+    $id = $result['id'] ?? 0;
+    header( 'Location: /?action=companies&edit=' . $id . '&msg=' . urlencode( 'Bedrijf aangemaakt.' ) ); exit;
+}
 if ( $action === 'save_company' && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     require_login();
     $id   = intval( $_POST['id'] ?? 0 );
@@ -155,6 +161,12 @@ if ( $action === 'delete_company' ) {
 }
 
 // ─── Area CRUD ────────────────────────────────────────────────────────────────
+if ( $action === 'new_area' ) {
+    require_login();
+    $result = wp_api( 'areas', 'POST', array( 'name' => 'Nieuw werkgebied', 'active' => true ) );
+    $id = $result['id'] ?? 0;
+    header( 'Location: /?action=areas&edit=' . $id . '&msg=' . urlencode( 'Werkgebied aangemaakt.' ) ); exit;
+}
 if ( $action === 'save_area' && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     require_login();
     $id   = intval( $_POST['id'] ?? 0 );
@@ -181,6 +193,28 @@ if ( $action === 'delete_area' ) {
     $id = intval( $_GET['id'] ?? 0 );
     wp_api( "areas/{$id}", 'DELETE' );
     header( 'Location: /?action=areas&msg=' . urlencode( 'Werkgebied verwijderd.' ) ); exit;
+}
+
+// ─── Style ────────────────────────────────────────────────────────────────────
+if ( $action === 'save_style' && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    require_login();
+    $colors = array( 'primary_color', 'secondary_color', 'accent_color', 'text_color', 'bg_color', 'border_color' );
+    $data   = array();
+    foreach ( $colors as $c ) {
+        $val = trim( $_POST[ $c . '_txt' ] ?? $_POST[ $c ] ?? '' );
+        if ( $val ) $data[ $c ] = $val;
+    }
+    $data['max_width']        = intval( $_POST['max_width'] ?? 900 );
+    $data['border_radius']    = intval( $_POST['border_radius'] ?? 12 );
+    $data['btn_radius']       = intval( $_POST['btn_radius'] ?? 8 );
+    $data['font_size_base']   = intval( $_POST['font_size_base'] ?? 15 );
+    $data['font_size_title']  = intval( $_POST['font_size_title'] ?? 22 );
+    $data['shadow_enabled']   = ! empty( $_POST['shadow_enabled'] );
+    $data['shadow_intensity'] = trim( $_POST['shadow_intensity'] ?? 'medium' );
+    $data['spacing']          = trim( $_POST['spacing'] ?? 'normal' );
+    $result = wp_api( 'style', 'PUT', $data );
+    $ok     = $result && ! empty( $result['success'] );
+    header( 'Location: /?action=settings&tab=stijl&msg=' . urlencode( $ok ? 'Stijl opgeslagen.' : 'Fout bij opslaan.' ) ); exit;
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
@@ -251,6 +285,8 @@ $companies      = null;
 $areas          = null;
 $settings       = null;
 $discount_codes = null;
+$style          = null;
+$license        = null;
 
 if ( is_logged_in() ) {
     if ( $action === 'dashboard' )  $stats    = wp_api( 'stats' );
@@ -276,6 +312,8 @@ if ( is_logged_in() ) {
     if ( $action === 'settings' ) {
         $settings       = wp_api( 'settings' );
         $discount_codes = wp_api( 'discount-codes' ) ?: array();
+        $style          = wp_api( 'style' );
+        $license        = wp_api( 'license' );
     }
 }
 
