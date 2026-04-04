@@ -339,8 +339,22 @@ class CMCalc_Boss_Portal {
     public static function enqueue_assets() {
         $post    = get_post();
         $content = $post ? $post->post_content : '';
+
+        // Elementor slaat shortcodes op in _elementor_data, niet in post_content.
+        // Controleer ook de Elementor-data zodat CSS altijd in <head> staat.
         if ( ! has_shortcode( $content, 'cmcalc_boss_portal' ) &&
-             ! has_shortcode( $content, 'cmcalc_boss_login' ) ) return;
+             ! has_shortcode( $content, 'cmcalc_boss_login' ) ) {
+            if ( $post ) {
+                $elementor_data = get_post_meta( $post->ID, '_elementor_data', true );
+                if ( ! $elementor_data ||
+                     ( strpos( $elementor_data, 'cmcalc_boss_portal' ) === false &&
+                       strpos( $elementor_data, 'cmcalc_boss_login' )  === false ) ) {
+                    return;
+                }
+            } else {
+                return;
+            }
+        }
 
         wp_enqueue_style( 'cmcalc-boss-portal',
             CMCALC_PLUGIN_URL . 'public/css/boss-portal.css',
@@ -359,6 +373,10 @@ class CMCalc_Boss_Portal {
     // ─── Shortcode: Login ─────────────────────────────────────────────────────
 
     public static function render_login( $atts ) {
+        if ( ! wp_style_is( 'cmcalc-boss-portal', 'enqueued' ) ) {
+            self::enqueue_assets();
+        }
+
         $account = self::get_current_account();
         if ( $account ) {
             return '<p style="text-align:center;">U bent ingelogd als <strong>' . esc_html( $account->first_name ) . '</strong>. <a href="?tab=dashboard">Ga naar portaal</a></p>';
@@ -429,6 +447,10 @@ class CMCalc_Boss_Portal {
     // ─── Shortcode: Portal ────────────────────────────────────────────────────
 
     public static function render_portal( $atts ) {
+        if ( ! wp_style_is( 'cmcalc-boss-portal', 'enqueued' ) ) {
+            self::enqueue_assets();
+        }
+
         $account = self::get_current_account();
 
         if ( ! $account ) {
