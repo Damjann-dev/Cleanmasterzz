@@ -88,13 +88,169 @@ if ( $action === 'reply_message' && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     header( 'Location: /?action=messages&msg=' . urlencode( $msg ) ); exit;
 }
 
+// ─── Service CRUD ─────────────────────────────────────────────────────────────
+if ( $action === 'new_service' ) {
+    require_login();
+    $result = wp_api( 'services', 'POST', array( 'title' => 'Nieuwe dienst', 'active' => true ) );
+    $id = $result['id'] ?? 0;
+    header( 'Location: /?action=services&edit=' . $id . '&msg=' . urlencode( 'Dienst aangemaakt.' ) ); exit;
+}
+if ( $action === 'save_service' && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    require_login();
+    $id   = intval( $_POST['id'] ?? 0 );
+    $data = array(
+        'title'          => trim( $_POST['title'] ?? '' ),
+        'icon'           => trim( $_POST['icon'] ?? '' ),
+        'base_price'     => floatval( $_POST['base_price'] ?? 0 ),
+        'price_unit'     => trim( $_POST['price_unit'] ?? 'm2' ),
+        'minimum_price'  => floatval( $_POST['minimum_price'] ?? 0 ),
+        'discount'       => floatval( $_POST['discount'] ?? 0 ),
+        'active'         => ! empty( $_POST['active'] ),
+        'requires_quote' => ! empty( $_POST['requires_quote'] ),
+        'sort_order'     => intval( $_POST['sort_order'] ?? 0 ),
+    );
+    $sub_json = $_POST['sub_options_json'] ?? '[]';
+    $decoded  = json_decode( $sub_json, true );
+    if ( is_array( $decoded ) ) $data['sub_options'] = $decoded;
+    $result = wp_api( "services/{$id}", 'PUT', $data );
+    $ok = $result && isset( $result['id'] );
+    header( 'Location: /?action=services&edit=' . $id . '&msg=' . urlencode( $ok ? 'Opgeslagen.' : 'Fout bij opslaan.' ) ); exit;
+}
+if ( $action === 'delete_service' ) {
+    require_login();
+    $id = intval( $_GET['id'] ?? 0 );
+    wp_api( "services/{$id}", 'DELETE' );
+    header( 'Location: /?action=services&msg=' . urlencode( 'Dienst verwijderd.' ) ); exit;
+}
+
+// ─── Company CRUD ─────────────────────────────────────────────────────────────
+if ( $action === 'save_company' && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    require_login();
+    $id   = intval( $_POST['id'] ?? 0 );
+    $data = array(
+        'name'        => trim( $_POST['name'] ?? '' ),
+        'address'     => trim( $_POST['address'] ?? '' ),
+        'postcode'    => trim( $_POST['postcode'] ?? '' ),
+        'huisnummer'  => trim( $_POST['huisnummer'] ?? '' ),
+        'phone'       => trim( $_POST['phone'] ?? '' ),
+        'email'       => trim( $_POST['email'] ?? '' ),
+        'lat'         => floatval( $_POST['lat'] ?? 0 ),
+        'lon'         => floatval( $_POST['lon'] ?? 0 ),
+        'active'      => ! empty( $_POST['active'] ),
+    );
+    if ( $id > 0 ) {
+        $result = wp_api( "companies/{$id}", 'PUT', $data );
+    } else {
+        $result = wp_api( 'companies', 'POST', $data );
+        $id     = $result['id'] ?? 0;
+    }
+    $ok = $result && isset( $result['id'] );
+    header( 'Location: /?action=companies&edit=' . $id . '&msg=' . urlencode( $ok ? 'Opgeslagen.' : 'Fout bij opslaan.' ) ); exit;
+}
+if ( $action === 'delete_company' ) {
+    require_login();
+    $id = intval( $_GET['id'] ?? 0 );
+    wp_api( "companies/{$id}", 'DELETE' );
+    header( 'Location: /?action=companies&msg=' . urlencode( 'Bedrijf verwijderd.' ) ); exit;
+}
+
+// ─── Area CRUD ────────────────────────────────────────────────────────────────
+if ( $action === 'save_area' && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    require_login();
+    $id   = intval( $_POST['id'] ?? 0 );
+    $data = array(
+        'name'       => trim( $_POST['name'] ?? '' ),
+        'postcode'   => trim( $_POST['postcode'] ?? '' ),
+        'lat'        => floatval( $_POST['lat'] ?? 0 ),
+        'lon'        => floatval( $_POST['lon'] ?? 0 ),
+        'free_km'    => floatval( $_POST['free_km'] ?? 0 ),
+        'bedrijf_id' => intval( $_POST['bedrijf_id'] ?? 0 ),
+        'active'     => ! empty( $_POST['active'] ),
+    );
+    if ( $id > 0 ) {
+        $result = wp_api( "areas/{$id}", 'PUT', $data );
+    } else {
+        $result = wp_api( 'areas', 'POST', $data );
+        $id     = $result['id'] ?? 0;
+    }
+    $ok = $result && isset( $result['id'] );
+    header( 'Location: /?action=areas&edit=' . $id . '&msg=' . urlencode( $ok ? 'Opgeslagen.' : 'Fout bij opslaan.' ) ); exit;
+}
+if ( $action === 'delete_area' ) {
+    require_login();
+    $id = intval( $_GET['id'] ?? 0 );
+    wp_api( "areas/{$id}", 'DELETE' );
+    header( 'Location: /?action=areas&msg=' . urlencode( 'Werkgebied verwijderd.' ) ); exit;
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+if ( $action === 'save_settings' && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    require_login();
+    $tab  = $_GET['tab'] ?? 'algemeen';
+    $data = array();
+    if ( $tab === 'algemeen' ) {
+        foreach ( array( 'calc_title', 'btn_step1', 'btn_step2', 'btn_step3', 'disclaimer_text', 'success_text', 'whatsapp_number' ) as $f ) {
+            $data[ $f ] = trim( $_POST[ $f ] ?? '' );
+        }
+    } elseif ( $tab === 'email' ) {
+        foreach ( array( 'admin_email', 'email_subject', 'email_footer_text', 'email_logo_url' ) as $f ) {
+            $data[ $f ] = trim( $_POST[ $f ] ?? '' );
+        }
+        $data['email_customer_enabled'] = ! empty( $_POST['email_customer_enabled'] );
+        $data['email_status_enabled']   = ! empty( $_POST['email_status_enabled'] );
+        $smtp = array(
+            'enabled'    => ! empty( $_POST['smtp_enabled'] ),
+            'host'       => trim( $_POST['smtp_host'] ?? '' ),
+            'port'       => intval( $_POST['smtp_port'] ?? 587 ),
+            'encryption' => trim( $_POST['smtp_encryption'] ?? 'tls' ),
+            'username'   => trim( $_POST['smtp_username'] ?? '' ),
+            'from_name'  => trim( $_POST['smtp_from_name'] ?? '' ),
+            'from_email' => trim( $_POST['smtp_from_email'] ?? '' ),
+        );
+        if ( ! empty( $_POST['smtp_password'] ) ) $smtp['password'] = $_POST['smtp_password'];
+        $data['smtp'] = $smtp;
+    } elseif ( $tab === 'btw' ) {
+        $data['btw_percentage'] = floatval( $_POST['btw_percentage'] ?? 21 );
+        $data['show_btw']       = in_array( $_POST['show_btw'] ?? '', array( 'incl', 'excl' ) ) ? $_POST['show_btw'] : 'incl';
+    }
+    $result = wp_api( 'settings', 'PUT', $data );
+    $ok = $result && ! empty( $result['success'] );
+    header( 'Location: /?action=settings&tab=' . urlencode( $tab ) . '&msg=' . urlencode( $ok ? 'Instellingen opgeslagen.' : 'Fout bij opslaan.' ) ); exit;
+}
+
+// ─── Discount Codes ───────────────────────────────────────────────────────────
+if ( $action === 'add_discount_code' && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    require_login();
+    $data = array(
+        'code'       => trim( $_POST['code'] ?? '' ),
+        'type'       => trim( $_POST['type'] ?? 'percentage' ),
+        'value'      => floatval( $_POST['value'] ?? 0 ),
+        'max_uses'   => intval( $_POST['max_uses'] ?? 0 ),
+        'expires_at' => trim( $_POST['expires_at'] ?? '' ),
+    );
+    $result = wp_api( 'discount-codes', 'POST', $data );
+    $ok = $result && isset( $result['code'] );
+    header( 'Location: /?action=settings&tab=codes&msg=' . urlencode( $ok ? 'Code aangemaakt.' : ( $result['message'] ?? 'Fout.' ) ) ); exit;
+}
+if ( $action === 'delete_discount_code' && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    require_login();
+    $code = urlencode( trim( $_POST['code'] ?? '' ) );
+    wp_api( "discount-codes/{$code}", 'DELETE' );
+    header( 'Location: /?action=settings&tab=codes&msg=' . urlencode( 'Code verwijderd.' ) ); exit;
+}
+
 // ─── Data laden ───────────────────────────────────────────────────────────────
-$stats     = null;
-$bookings  = null;
-$messages  = null;
-$customers = null;
-$revenue   = null;
-$booking   = null;
+$stats          = null;
+$bookings       = null;
+$messages       = null;
+$customers      = null;
+$revenue        = null;
+$booking        = null;
+$services       = null;
+$companies      = null;
+$areas          = null;
+$settings       = null;
+$discount_codes = null;
 
 if ( is_logged_in() ) {
     if ( $action === 'dashboard' )  $stats    = wp_api( 'stats' );
@@ -108,10 +264,19 @@ if ( is_logged_in() ) {
     if ( $action === 'booking_detail' && isset( $_GET['id'] ) ) {
         $booking = wp_api( 'bookings/' . intval( $_GET['id'] ) );
     }
-    if ( $action === 'messages' )   $messages  = wp_api( 'messages' );
-    if ( $action === 'customers' )  $customers = wp_api( 'customers' );
-    if ( $action === 'analytics' )  $revenue   = wp_api( 'revenue?months=12' );
-    if ( $action === 'dashboard' )  $revenue   = wp_api( 'revenue?months=6' );
+    if ( $action === 'messages' )  $messages  = wp_api( 'messages' );
+    if ( $action === 'customers' ) $customers = wp_api( 'customers' );
+    if ( $action === 'analytics' ) $revenue   = wp_api( 'revenue?months=12' );
+    if ( $action === 'dashboard' ) $revenue   = wp_api( 'revenue?months=6' );
+    if ( in_array( $action, array( 'services', 'companies', 'areas', 'settings' ) ) ) {
+        $companies = wp_api( 'companies' ) ?: array();
+    }
+    if ( $action === 'services' )  $services  = wp_api( 'services' ) ?: array();
+    if ( $action === 'areas' )     $areas     = wp_api( 'areas' )    ?: array();
+    if ( $action === 'settings' ) {
+        $settings       = wp_api( 'settings' );
+        $discount_codes = wp_api( 'discount-codes' ) ?: array();
+    }
 }
 
 $msg_param = htmlspecialchars( $_GET['msg'] ?? '' );
@@ -257,8 +422,11 @@ tr:hover td{background:var(--card-h)}
     </a>
   </div>
   <div class="sidebar-section">
-    <div class="sidebar-label">Instellingen</div>
-    <a href="<?=h(WP_SITE_URL)?>/wp-admin/" target="_blank" class="nav-item">⚙️ WordPress Admin ↗</a>
+    <div class="sidebar-label">Configuratie</div>
+    <a href="/?action=services"  class="nav-item <?=($action==='services')?'active':''?>">🧹 Diensten</a>
+    <a href="/?action=companies" class="nav-item <?=($action==='companies')?'active':''?>">🏢 Bedrijven</a>
+    <a href="/?action=areas"     class="nav-item <?=($action==='areas')?'active':''?>">📍 Werkgebieden</a>
+    <a href="/?action=settings"  class="nav-item <?=($action==='settings')?'active':''?>">⚙️ Instellingen</a>
   </div>
   <div class="sidebar-footer">
     <a href="/?action=logout" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center">Uitloggen</a>
@@ -269,12 +437,16 @@ tr:hover td{background:var(--card-h)}
   <?php if($msg): ?><div class="alert alert-success"><?=h($msg)?></div><?php endif ?>
   <?php if($err): ?><div class="alert alert-error"><?=h($err)?></div><?php endif ?>
 
-  <?php if($action==='dashboard'): include __DIR__.'/partials/dashboard.php'; ?>
-  <?php elseif($action==='bookings'): include __DIR__.'/partials/bookings.php'; ?>
-  <?php elseif($action==='booking_detail'): include __DIR__.'/partials/booking-detail.php'; ?>
-  <?php elseif($action==='messages'): include __DIR__.'/partials/messages.php'; ?>
-  <?php elseif($action==='customers'): include __DIR__.'/partials/customers.php'; ?>
-  <?php elseif($action==='analytics'): include __DIR__.'/partials/analytics.php'; ?>
+  <?php if($action==='dashboard'):         include __DIR__.'/partials/dashboard.php'; ?>
+  <?php elseif($action==='bookings'):      include __DIR__.'/partials/bookings.php'; ?>
+  <?php elseif($action==='booking_detail'):include __DIR__.'/partials/booking-detail.php'; ?>
+  <?php elseif($action==='messages'):      include __DIR__.'/partials/messages.php'; ?>
+  <?php elseif($action==='customers'):     include __DIR__.'/partials/customers.php'; ?>
+  <?php elseif($action==='analytics'):     include __DIR__.'/partials/analytics.php'; ?>
+  <?php elseif($action==='services'):      include __DIR__.'/partials/services.php'; ?>
+  <?php elseif($action==='companies'):     include __DIR__.'/partials/companies.php'; ?>
+  <?php elseif($action==='areas'):         include __DIR__.'/partials/areas.php'; ?>
+  <?php elseif($action==='settings'):      include __DIR__.'/partials/settings.php'; ?>
   <?php endif ?>
 </main>
 </div>

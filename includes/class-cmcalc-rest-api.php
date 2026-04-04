@@ -98,6 +98,52 @@ class CMCalc_REST_API {
             'callback'            => array( __CLASS__, 'admin_export_bookings_csv' ),
             'permission_callback' => $admin_perm,
         ) );
+
+        // ─── Services CRUD ────────────────────────────────────────────────────
+        register_rest_route( $ns, '/admin/services', array(
+            array( 'methods' => 'GET',  'callback' => array( __CLASS__, 'admin_services_list' ),   'permission_callback' => $admin_perm ),
+            array( 'methods' => 'POST', 'callback' => array( __CLASS__, 'admin_services_create' ), 'permission_callback' => $admin_perm ),
+        ) );
+        register_rest_route( $ns, '/admin/services/(?P<id>\d+)', array(
+            array( 'methods' => 'GET',    'callback' => array( __CLASS__, 'admin_services_get' ),    'permission_callback' => $admin_perm ),
+            array( 'methods' => 'PUT',    'callback' => array( __CLASS__, 'admin_services_update' ), 'permission_callback' => $admin_perm ),
+            array( 'methods' => 'DELETE', 'callback' => array( __CLASS__, 'admin_services_delete' ), 'permission_callback' => $admin_perm ),
+        ) );
+
+        // ─── Companies CRUD ───────────────────────────────────────────────────
+        register_rest_route( $ns, '/admin/companies', array(
+            array( 'methods' => 'GET',  'callback' => array( __CLASS__, 'admin_companies_list' ),   'permission_callback' => $admin_perm ),
+            array( 'methods' => 'POST', 'callback' => array( __CLASS__, 'admin_companies_create' ), 'permission_callback' => $admin_perm ),
+        ) );
+        register_rest_route( $ns, '/admin/companies/(?P<id>\d+)', array(
+            array( 'methods' => 'PUT',    'callback' => array( __CLASS__, 'admin_companies_update' ), 'permission_callback' => $admin_perm ),
+            array( 'methods' => 'DELETE', 'callback' => array( __CLASS__, 'admin_companies_delete' ), 'permission_callback' => $admin_perm ),
+        ) );
+
+        // ─── Work Areas CRUD ──────────────────────────────────────────────────
+        register_rest_route( $ns, '/admin/areas', array(
+            array( 'methods' => 'GET',  'callback' => array( __CLASS__, 'admin_areas_list' ),   'permission_callback' => $admin_perm ),
+            array( 'methods' => 'POST', 'callback' => array( __CLASS__, 'admin_areas_create' ), 'permission_callback' => $admin_perm ),
+        ) );
+        register_rest_route( $ns, '/admin/areas/(?P<id>\d+)', array(
+            array( 'methods' => 'PUT',    'callback' => array( __CLASS__, 'admin_areas_update' ), 'permission_callback' => $admin_perm ),
+            array( 'methods' => 'DELETE', 'callback' => array( __CLASS__, 'admin_areas_delete' ), 'permission_callback' => $admin_perm ),
+        ) );
+
+        // ─── Settings ─────────────────────────────────────────────────────────
+        register_rest_route( $ns, '/admin/settings', array(
+            array( 'methods' => 'GET', 'callback' => array( __CLASS__, 'admin_settings_get' ),    'permission_callback' => $admin_perm ),
+            array( 'methods' => 'PUT', 'callback' => array( __CLASS__, 'admin_settings_update' ), 'permission_callback' => $admin_perm ),
+        ) );
+
+        // ─── Discount Codes ───────────────────────────────────────────────────
+        register_rest_route( $ns, '/admin/discount-codes', array(
+            array( 'methods' => 'GET',  'callback' => array( __CLASS__, 'admin_discount_codes_list' ),   'permission_callback' => $admin_perm ),
+            array( 'methods' => 'POST', 'callback' => array( __CLASS__, 'admin_discount_codes_create' ), 'permission_callback' => $admin_perm ),
+        ) );
+        register_rest_route( $ns, '/admin/discount-codes/(?P<code>[a-zA-Z0-9_\-]+)', array(
+            array( 'methods' => 'DELETE', 'callback' => array( __CLASS__, 'admin_discount_codes_delete' ), 'permission_callback' => $admin_perm ),
+        ) );
     }
 
     /**
@@ -1097,5 +1143,336 @@ class CMCalc_REST_API {
             'Content-Type'        => 'text/csv; charset=utf-8',
             'Content-Disposition' => 'attachment; filename="boekingen-' . date('Y-m-d') . '.csv"',
         ) );
+    }
+
+    // =========================================================================
+    // SERVICES CRUD
+    // =========================================================================
+
+    private static function service_to_array( $post ) {
+        return array(
+            'id'             => $post->ID,
+            'title'          => $post->post_title,
+            'active'         => get_post_meta( $post->ID, '_cm_active', true ) !== '0',
+            'icon'           => get_post_meta( $post->ID, '_cm_icon', true ) ?: '',
+            'base_price'     => floatval( get_post_meta( $post->ID, '_cm_base_price', true ) ),
+            'price_unit'     => get_post_meta( $post->ID, '_cm_price_unit', true ) ?: 'm2',
+            'minimum_price'  => floatval( get_post_meta( $post->ID, '_cm_minimum_price', true ) ),
+            'discount'       => floatval( get_post_meta( $post->ID, '_cm_discount_percent', true ) ),
+            'requires_quote' => get_post_meta( $post->ID, '_cm_requires_quote', true ) === '1',
+            'sub_options'    => json_decode( get_post_meta( $post->ID, '_cm_sub_options', true ) ?: '[]', true ) ?: array(),
+            'volume_tiers'   => json_decode( get_post_meta( $post->ID, '_cm_volume_tiers', true ) ?: '[]', true ) ?: array(),
+            'sort_order'     => intval( $post->menu_order ),
+        );
+    }
+
+    public static function admin_services_list() {
+        $posts = get_posts( array(
+            'post_type'      => 'dienst',
+            'posts_per_page' => -1,
+            'post_status'    => 'any',
+            'orderby'        => 'menu_order',
+            'order'          => 'ASC',
+        ) );
+        return rest_ensure_response( array_map( array( __CLASS__, 'service_to_array' ), $posts ) );
+    }
+
+    public static function admin_services_get( $request ) {
+        $post = get_post( intval( $request['id'] ) );
+        if ( ! $post || $post->post_type !== 'dienst' ) {
+            return new WP_Error( 'not_found', 'Dienst niet gevonden', array( 'status' => 404 ) );
+        }
+        return rest_ensure_response( self::service_to_array( $post ) );
+    }
+
+    public static function admin_services_create( $request ) {
+        $data  = $request->get_json_params() ?: array();
+        $title = sanitize_text_field( $data['title'] ?? 'Nieuwe dienst' );
+        $id    = wp_insert_post( array( 'post_title' => $title, 'post_type' => 'dienst', 'post_status' => 'publish' ) );
+        if ( is_wp_error( $id ) ) return $id;
+        self::save_service_meta( $id, $data );
+        return rest_ensure_response( self::service_to_array( get_post( $id ) ) );
+    }
+
+    public static function admin_services_update( $request ) {
+        $id   = intval( $request['id'] );
+        $post = get_post( $id );
+        if ( ! $post || $post->post_type !== 'dienst' ) {
+            return new WP_Error( 'not_found', 'Dienst niet gevonden', array( 'status' => 404 ) );
+        }
+        $data = $request->get_json_params() ?: array();
+        if ( isset( $data['title'] ) ) {
+            wp_update_post( array( 'ID' => $id, 'post_title' => sanitize_text_field( $data['title'] ) ) );
+        }
+        self::save_service_meta( $id, $data );
+        return rest_ensure_response( self::service_to_array( get_post( $id ) ) );
+    }
+
+    public static function admin_services_delete( $request ) {
+        $id   = intval( $request['id'] );
+        $post = get_post( $id );
+        if ( ! $post || $post->post_type !== 'dienst' ) {
+            return new WP_Error( 'not_found', 'Dienst niet gevonden', array( 'status' => 404 ) );
+        }
+        wp_delete_post( $id, true );
+        return rest_ensure_response( array( 'deleted' => true, 'id' => $id ) );
+    }
+
+    private static function save_service_meta( $id, $data ) {
+        $valid_units = array( 'm2', 'stuk', 'paneel', 'raam', 'vast' );
+        if ( isset( $data['active'] ) )        update_post_meta( $id, '_cm_active',          $data['active'] ? '1' : '0' );
+        if ( isset( $data['icon'] ) )          update_post_meta( $id, '_cm_icon',             sanitize_text_field( $data['icon'] ) );
+        if ( isset( $data['base_price'] ) )    update_post_meta( $id, '_cm_base_price',       floatval( $data['base_price'] ) );
+        if ( isset( $data['price_unit'] ) )    update_post_meta( $id, '_cm_price_unit',       in_array( $data['price_unit'], $valid_units ) ? $data['price_unit'] : 'm2' );
+        if ( isset( $data['minimum_price'] ) ) update_post_meta( $id, '_cm_minimum_price',    floatval( $data['minimum_price'] ) );
+        if ( isset( $data['discount'] ) )      update_post_meta( $id, '_cm_discount_percent', floatval( $data['discount'] ) );
+        if ( isset( $data['requires_quote'] ) ) update_post_meta( $id, '_cm_requires_quote',  $data['requires_quote'] ? '1' : '' );
+        if ( isset( $data['sort_order'] ) )    wp_update_post( array( 'ID' => $id, 'menu_order' => intval( $data['sort_order'] ) ) );
+        if ( isset( $data['sub_options'] ) && is_array( $data['sub_options'] ) ) {
+            update_post_meta( $id, '_cm_sub_options', wp_json_encode( $data['sub_options'] ) );
+        }
+        if ( isset( $data['volume_tiers'] ) && is_array( $data['volume_tiers'] ) ) {
+            update_post_meta( $id, '_cm_volume_tiers', wp_json_encode( $data['volume_tiers'] ) );
+        }
+    }
+
+    // =========================================================================
+    // COMPANIES CRUD
+    // =========================================================================
+
+    private static function company_to_array( $post ) {
+        return array(
+            'id'          => $post->ID,
+            'name'        => $post->post_title,
+            'active'      => get_post_meta( $post->ID, '_cm_bedrijf_active', true ) !== '0',
+            'address'     => get_post_meta( $post->ID, '_cm_bedrijf_address', true ),
+            'postcode'    => get_post_meta( $post->ID, '_cm_bedrijf_postcode', true ),
+            'huisnummer'  => get_post_meta( $post->ID, '_cm_bedrijf_huisnummer', true ),
+            'phone'       => get_post_meta( $post->ID, '_cm_bedrijf_phone', true ),
+            'email'       => get_post_meta( $post->ID, '_cm_bedrijf_email', true ),
+            'lat'         => floatval( get_post_meta( $post->ID, '_cm_bedrijf_lat', true ) ),
+            'lon'         => floatval( get_post_meta( $post->ID, '_cm_bedrijf_lon', true ) ),
+        );
+    }
+
+    public static function admin_companies_list() {
+        $posts = get_posts( array( 'post_type' => 'cm_bedrijf', 'posts_per_page' => -1, 'post_status' => 'any' ) );
+        return rest_ensure_response( array_map( array( __CLASS__, 'company_to_array' ), $posts ) );
+    }
+
+    public static function admin_companies_create( $request ) {
+        $data = $request->get_json_params() ?: array();
+        $id   = wp_insert_post( array(
+            'post_title'  => sanitize_text_field( $data['name'] ?? 'Nieuw bedrijf' ),
+            'post_type'   => 'cm_bedrijf',
+            'post_status' => 'publish',
+        ) );
+        if ( is_wp_error( $id ) ) return $id;
+        self::save_company_meta( $id, $data );
+        return rest_ensure_response( self::company_to_array( get_post( $id ) ) );
+    }
+
+    public static function admin_companies_update( $request ) {
+        $id   = intval( $request['id'] );
+        $post = get_post( $id );
+        if ( ! $post || $post->post_type !== 'cm_bedrijf' ) {
+            return new WP_Error( 'not_found', 'Bedrijf niet gevonden', array( 'status' => 404 ) );
+        }
+        $data = $request->get_json_params() ?: array();
+        if ( isset( $data['name'] ) ) {
+            wp_update_post( array( 'ID' => $id, 'post_title' => sanitize_text_field( $data['name'] ) ) );
+        }
+        self::save_company_meta( $id, $data );
+        return rest_ensure_response( self::company_to_array( get_post( $id ) ) );
+    }
+
+    public static function admin_companies_delete( $request ) {
+        $id   = intval( $request['id'] );
+        $post = get_post( $id );
+        if ( ! $post || $post->post_type !== 'cm_bedrijf' ) {
+            return new WP_Error( 'not_found', 'Bedrijf niet gevonden', array( 'status' => 404 ) );
+        }
+        wp_delete_post( $id, true );
+        return rest_ensure_response( array( 'deleted' => true, 'id' => $id ) );
+    }
+
+    private static function save_company_meta( $id, $data ) {
+        if ( isset( $data['active'] ) )     update_post_meta( $id, '_cm_bedrijf_active',     $data['active'] ? '1' : '0' );
+        if ( isset( $data['address'] ) )    update_post_meta( $id, '_cm_bedrijf_address',    sanitize_text_field( $data['address'] ) );
+        if ( isset( $data['postcode'] ) )   update_post_meta( $id, '_cm_bedrijf_postcode',   sanitize_text_field( $data['postcode'] ) );
+        if ( isset( $data['huisnummer'] ) ) update_post_meta( $id, '_cm_bedrijf_huisnummer', sanitize_text_field( $data['huisnummer'] ) );
+        if ( isset( $data['phone'] ) )      update_post_meta( $id, '_cm_bedrijf_phone',      sanitize_text_field( $data['phone'] ) );
+        if ( isset( $data['email'] ) )      update_post_meta( $id, '_cm_bedrijf_email',      sanitize_email( $data['email'] ) );
+        if ( isset( $data['lat'] ) )        update_post_meta( $id, '_cm_bedrijf_lat',        floatval( $data['lat'] ) );
+        if ( isset( $data['lon'] ) )        update_post_meta( $id, '_cm_bedrijf_lon',        floatval( $data['lon'] ) );
+    }
+
+    // =========================================================================
+    // WORK AREAS CRUD
+    // =========================================================================
+
+    private static function area_to_array( $post ) {
+        return array(
+            'id'         => $post->ID,
+            'name'       => $post->post_title,
+            'active'     => get_post_meta( $post->ID, '_cmcalc_active', true ) !== '0',
+            'postcode'   => get_post_meta( $post->ID, '_cmcalc_postcode', true ),
+            'lat'        => floatval( get_post_meta( $post->ID, '_cmcalc_lat', true ) ),
+            'lon'        => floatval( get_post_meta( $post->ID, '_cmcalc_lon', true ) ),
+            'free_km'    => floatval( get_post_meta( $post->ID, '_cmcalc_free_km', true ) ),
+            'bedrijf_id' => intval( get_post_meta( $post->ID, '_cmcalc_bedrijf_id', true ) ),
+        );
+    }
+
+    public static function admin_areas_list() {
+        $posts = get_posts( array( 'post_type' => 'cm_werkgebied', 'posts_per_page' => -1, 'post_status' => 'any' ) );
+        return rest_ensure_response( array_map( array( __CLASS__, 'area_to_array' ), $posts ) );
+    }
+
+    public static function admin_areas_create( $request ) {
+        $data = $request->get_json_params() ?: array();
+        $id   = wp_insert_post( array(
+            'post_title'  => sanitize_text_field( $data['name'] ?? 'Nieuw werkgebied' ),
+            'post_type'   => 'cm_werkgebied',
+            'post_status' => 'publish',
+        ) );
+        if ( is_wp_error( $id ) ) return $id;
+        self::save_area_meta( $id, $data );
+        return rest_ensure_response( self::area_to_array( get_post( $id ) ) );
+    }
+
+    public static function admin_areas_update( $request ) {
+        $id   = intval( $request['id'] );
+        $post = get_post( $id );
+        if ( ! $post || $post->post_type !== 'cm_werkgebied' ) {
+            return new WP_Error( 'not_found', 'Werkgebied niet gevonden', array( 'status' => 404 ) );
+        }
+        $data = $request->get_json_params() ?: array();
+        if ( isset( $data['name'] ) ) {
+            wp_update_post( array( 'ID' => $id, 'post_title' => sanitize_text_field( $data['name'] ) ) );
+        }
+        self::save_area_meta( $id, $data );
+        return rest_ensure_response( self::area_to_array( get_post( $id ) ) );
+    }
+
+    public static function admin_areas_delete( $request ) {
+        $id   = intval( $request['id'] );
+        $post = get_post( $id );
+        if ( ! $post || $post->post_type !== 'cm_werkgebied' ) {
+            return new WP_Error( 'not_found', 'Werkgebied niet gevonden', array( 'status' => 404 ) );
+        }
+        wp_delete_post( $id, true );
+        return rest_ensure_response( array( 'deleted' => true, 'id' => $id ) );
+    }
+
+    private static function save_area_meta( $id, $data ) {
+        if ( isset( $data['active'] ) )     update_post_meta( $id, '_cmcalc_active',     $data['active'] ? '1' : '0' );
+        if ( isset( $data['postcode'] ) )   update_post_meta( $id, '_cmcalc_postcode',   sanitize_text_field( $data['postcode'] ) );
+        if ( isset( $data['lat'] ) )        update_post_meta( $id, '_cmcalc_lat',        floatval( $data['lat'] ) );
+        if ( isset( $data['lon'] ) )        update_post_meta( $id, '_cmcalc_lon',        floatval( $data['lon'] ) );
+        if ( isset( $data['free_km'] ) )    update_post_meta( $id, '_cmcalc_free_km',    floatval( $data['free_km'] ) );
+        if ( isset( $data['bedrijf_id'] ) ) update_post_meta( $id, '_cmcalc_bedrijf_id', intval( $data['bedrijf_id'] ) );
+    }
+
+    // =========================================================================
+    // SETTINGS
+    // =========================================================================
+
+    public static function admin_settings_get() {
+        $defaults = array(
+            'calc_title'             => 'Stel uw pakket samen',
+            'btn_step1'              => 'Volgende stap',
+            'btn_step2'              => 'Volgende stap',
+            'btn_step3'              => 'Aanvraag versturen',
+            'disclaimer_text'        => '',
+            'success_text'           => '',
+            'admin_email'            => get_option( 'admin_email' ),
+            'email_subject'          => 'Nieuwe boeking via calculator',
+            'email_footer_text'      => '',
+            'email_logo_url'         => '',
+            'email_customer_enabled' => '1',
+            'email_status_enabled'   => '1',
+            'btw_percentage'         => 21,
+            'show_btw'               => 'incl',
+            'whatsapp_number'        => '',
+        );
+        $settings = wp_parse_args( get_option( 'cmcalc_settings', array() ), $defaults );
+        // SMTP apart
+        $smtp = wp_parse_args( $settings['smtp'] ?? array(), array(
+            'enabled'      => false,
+            'host'         => '',
+            'port'         => 587,
+            'encryption'   => 'tls',
+            'username'     => '',
+            'from_name'    => '',
+            'from_email'   => '',
+        ) );
+        unset( $smtp['password'] ); // nooit plaintext teruggeven
+        $settings['smtp'] = $smtp;
+        return rest_ensure_response( $settings );
+    }
+
+    public static function admin_settings_update( $request ) {
+        $data     = $request->get_json_params() ?: array();
+        $current  = get_option( 'cmcalc_settings', array() );
+        $text_fields = array( 'calc_title', 'btn_step1', 'btn_step2', 'btn_step3', 'disclaimer_text', 'success_text', 'admin_email', 'email_subject', 'email_footer_text', 'whatsapp_number' );
+        foreach ( $text_fields as $f ) {
+            if ( isset( $data[ $f ] ) ) $current[ $f ] = sanitize_text_field( $data[ $f ] );
+        }
+        if ( isset( $data['email_logo_url'] ) )         $current['email_logo_url']         = esc_url_raw( $data['email_logo_url'] );
+        if ( isset( $data['email_customer_enabled'] ) ) $current['email_customer_enabled'] = $data['email_customer_enabled'] ? '1' : '0';
+        if ( isset( $data['email_status_enabled'] ) )   $current['email_status_enabled']   = $data['email_status_enabled'] ? '1' : '0';
+        if ( isset( $data['btw_percentage'] ) )         $current['btw_percentage']         = max( 0, min( 100, floatval( $data['btw_percentage'] ) ) );
+        if ( isset( $data['show_btw'] ) )               $current['show_btw']               = in_array( $data['show_btw'], array( 'incl', 'excl' ) ) ? $data['show_btw'] : 'incl';
+        // SMTP (wachtwoord alleen opslaan als het is meegegeven)
+        if ( isset( $data['smtp'] ) && is_array( $data['smtp'] ) ) {
+            $smtp = $current['smtp'] ?? array();
+            $smtp_text = array( 'host', 'username', 'from_name', 'from_email', 'encryption' );
+            foreach ( $smtp_text as $sf ) {
+                if ( isset( $data['smtp'][ $sf ] ) ) $smtp[ $sf ] = sanitize_text_field( $data['smtp'][ $sf ] );
+            }
+            if ( isset( $data['smtp']['port'] ) )     $smtp['port']    = intval( $data['smtp']['port'] );
+            if ( isset( $data['smtp']['enabled'] ) )  $smtp['enabled'] = (bool) $data['smtp']['enabled'];
+            if ( ! empty( $data['smtp']['password'] ) ) $smtp['password'] = $data['smtp']['password'];
+            $current['smtp'] = $smtp;
+        }
+        update_option( 'cmcalc_settings', $current );
+        return rest_ensure_response( array( 'success' => true ) );
+    }
+
+    // =========================================================================
+    // DISCOUNT CODES
+    // =========================================================================
+
+    public static function admin_discount_codes_list() {
+        $codes = get_option( 'cmcalc_discount_codes', array() );
+        return rest_ensure_response( array_values( $codes ) );
+    }
+
+    public static function admin_discount_codes_create( $request ) {
+        $data  = $request->get_json_params() ?: array();
+        $code  = strtoupper( sanitize_text_field( $data['code'] ?? '' ) );
+        if ( ! $code ) return new WP_Error( 'invalid', 'Code is verplicht', array( 'status' => 400 ) );
+        $codes = get_option( 'cmcalc_discount_codes', array() );
+        if ( isset( $codes[ $code ] ) ) return new WP_Error( 'duplicate', 'Code bestaat al', array( 'status' => 409 ) );
+        $codes[ $code ] = array(
+            'code'       => $code,
+            'type'       => in_array( $data['type'] ?? '', array( 'percentage', 'fixed' ) ) ? $data['type'] : 'percentage',
+            'value'      => floatval( $data['value'] ?? 0 ),
+            'max_uses'   => intval( $data['max_uses'] ?? 0 ),
+            'used'       => 0,
+            'expires_at' => sanitize_text_field( $data['expires_at'] ?? '' ),
+        );
+        update_option( 'cmcalc_discount_codes', $codes );
+        return rest_ensure_response( $codes[ $code ] );
+    }
+
+    public static function admin_discount_codes_delete( $request ) {
+        $code  = strtoupper( sanitize_text_field( $request['code'] ) );
+        $codes = get_option( 'cmcalc_discount_codes', array() );
+        if ( ! isset( $codes[ $code ] ) ) return new WP_Error( 'not_found', 'Code niet gevonden', array( 'status' => 404 ) );
+        unset( $codes[ $code ] );
+        update_option( 'cmcalc_discount_codes', $codes );
+        return rest_ensure_response( array( 'deleted' => true, 'code' => $code ) );
     }
 }
