@@ -207,6 +207,27 @@
                         '<span class="cmcalc-sub-euro">&euro;</span>' +
                         '<input type="number" class="cmcalc-sub-surcharge" value="' + (opt.surcharge || 0) + '" step="0.01" min="0">' +
                     '</div>' +
+                '</div>' +
+                '<div class="cmcalc-sub-field-group cmcalc-sub-field-price-type">' +
+                    '<label>Per</label>' +
+                    '<select class="cmcalc-sub-price-type">' +
+                        '<option value="per_keer"' + ((!opt.price_type || opt.price_type === 'per_keer') ? ' selected' : '') + '>per keer (eenmalig)</option>' +
+                        '<option value="per_m2"' + (opt.price_type === 'per_m2' ? ' selected' : '') + '>per m&sup2;</option>' +
+                        '<option value="per_uur"' + (opt.price_type === 'per_uur' ? ' selected' : '') + '>per uur</option>' +
+                        '<option value="per_stuk"' + (opt.price_type === 'per_stuk' ? ' selected' : '') + '>per stuk</option>' +
+                    '</select>' +
+                '</div>';
+            }
+
+            if (opt.type === 'select') {
+                html += '<div class="cmcalc-sub-field-group cmcalc-sub-field-price-type">' +
+                    '<label>Per</label>' +
+                    '<select class="cmcalc-sub-price-type">' +
+                        '<option value="per_keer"' + ((!opt.price_type || opt.price_type === 'per_keer') ? ' selected' : '') + '>per keer (eenmalig)</option>' +
+                        '<option value="per_m2"' + (opt.price_type === 'per_m2' ? ' selected' : '') + '>per m&sup2;</option>' +
+                        '<option value="per_uur"' + (opt.price_type === 'per_uur' ? ' selected' : '') + '>per uur</option>' +
+                        '<option value="per_stuk"' + (opt.price_type === 'per_stuk' ? ' selected' : '') + '>per stuk</option>' +
+                    '</select>' +
                 '</div>';
             }
 
@@ -285,7 +306,8 @@
         $('#cmcalcSubBody .cmcalc-sub-card').each(function() {
             var label = $(this).find('.cmcalc-sub-label').val().trim();
             var type = $(this).find('.cmcalc-sub-type').val();
-            var item = { label: label, type: type, surcharge: 0 };
+            var price_type = $(this).find('.cmcalc-sub-price-type').val() || 'per_keer';
+            var item = { label: label, type: type, surcharge: 0, price_type: price_type };
 
             if (type === 'checkbox') {
                 item.surcharge = parseFloat($(this).find('.cmcalc-sub-surcharge').val()) || 0;
@@ -307,7 +329,7 @@
 
     $('#cmcalcAddSubOption').on('click', function() {
         collectSubOptionsFromDOM();
-        currentSubOptions.push({ label: '', type: 'checkbox', surcharge: 0 });
+        currentSubOptions.push({ label: '', type: 'checkbox', surcharge: 0, price_type: 'per_keer' });
         renderSubOptions();
     });
 

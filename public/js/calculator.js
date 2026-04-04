@@ -94,6 +94,11 @@
         return '\u20AC' + num.toFixed(2).replace('.', ',');
     }
 
+    function priceTypeSuffix(price_type) {
+        var map = { per_keer: 'p/keer', per_m2: '/m\u00B2', per_uur: '/uur', per_stuk: '/st' };
+        return map[price_type] || '/st';
+    }
+
     /** Haversine distance in km */
     function haversineDistance(lat1, lon1, lat2, lon2) {
         var R = 6371;
@@ -177,11 +182,11 @@
                 var sel = selectedSubOptions[i];
                 if (!sel) return;
                 if (opt.type === 'checkbox' && sel.checked && opt.surcharge > 0) {
-                    subtotal += opt.surcharge * quantity;
+                    subtotal += opt.price_type === 'per_keer' ? opt.surcharge : opt.surcharge * quantity;
                 } else if (opt.type === 'select' && opt.surcharges && sel.value !== undefined) {
                     var idx = parseInt(sel.value, 10);
                     if (opt.surcharges && opt.surcharges[idx] > 0) {
-                        subtotal += opt.surcharges[idx] * quantity;
+                        subtotal += opt.price_type === 'per_keer' ? opt.surcharges[idx] : opt.surcharges[idx] * quantity;
                     }
                 }
             });
@@ -344,7 +349,7 @@
         var html = '';
         service.sub_options.forEach(function(opt, i) {
             if (opt.type === 'checkbox') {
-                var surchargeText = opt.surcharge > 0 ? ' <span class="cmcalc-service__sub-surcharge">+' + formatPrice(opt.surcharge) + '</span>' : '';
+                var surchargeText = opt.surcharge > 0 ? ' <span class="cmcalc-service__sub-surcharge">+' + formatPrice(opt.surcharge) + ' ' + priceTypeSuffix(opt.price_type) + '</span>' : '';
                 html += '<label class="cmcalc-service__sub-option">' +
                     '<input type="checkbox" data-sub-index="' + index + '-' + i + '" class="cmcalc-service__sub-input">' +
                     ' ' + (opt.label || '') + surchargeText +
@@ -354,7 +359,7 @@
                     '<label class="cmcalc-service__sub-label">' + (opt.label || '') + '</label>' +
                     '<select data-sub-index="' + index + '-' + i + '" class="cmcalc-service__sub-input cmcalc-service__sub-select">';
                 opt.options.forEach(function(o, j) {
-                    var surcharge = opt.surcharges && opt.surcharges[j] > 0 ? ' (+' + formatPrice(opt.surcharges[j]) + ')' : '';
+                    var surcharge = opt.surcharges && opt.surcharges[j] > 0 ? ' (+' + formatPrice(opt.surcharges[j]) + ' ' + priceTypeSuffix(opt.price_type) + ')' : '';
                     html += '<option value="' + j + '">' + o + surcharge + '</option>';
                 });
                 html += '</select></div>';
@@ -580,7 +585,7 @@
             html += '<label class="cmcalc-q-item__label">' + (opt.label || '') + '</label>';
 
             if (opt.type === 'checkbox') {
-                var surchargeText = opt.surcharge > 0 ? ' (+' + formatPrice(opt.surcharge) + ')' : '';
+                var surchargeText = opt.surcharge > 0 ? ' (+' + formatPrice(opt.surcharge) + ' ' + priceTypeSuffix(opt.price_type) + ')' : '';
                 // Pre-check if previously selected
                 var wasChecked = subOptionSelections[serviceIndex] && subOptionSelections[serviceIndex][i] && subOptionSelections[serviceIndex][i].checked;
                 html += '<label class="cmcalc-q-item__checkbox">' +
@@ -592,7 +597,7 @@
                 var prevValue = subOptionSelections[serviceIndex] && subOptionSelections[serviceIndex][i] ? subOptionSelections[serviceIndex][i].value : '0';
                 html += '<div class="cmcalc-q-item__select-wrap">';
                 opt.options.forEach(function(o, j) {
-                    var surcharge = opt.surcharges && opt.surcharges[j] > 0 ? ' (+' + formatPrice(opt.surcharges[j]) + ')' : '';
+                    var surcharge = opt.surcharges && opt.surcharges[j] > 0 ? ' (+' + formatPrice(opt.surcharges[j]) + ' ' + priceTypeSuffix(opt.price_type) + ')' : '';
                     var isSelected = (String(j) === String(prevValue));
                     html += '<label class="cmcalc-q-item__radio">' +
                         '<input type="radio" name="cmcalc_q_' + i + '" value="' + j + '"' + (isSelected ? ' checked' : '') + ' data-q-index="' + i + '">' +
@@ -1131,7 +1136,7 @@
                         var label = '';
                         if (opt.type === 'checkbox' && sel.checked) {
                             label = opt.label;
-                            if (opt.surcharge > 0) label += ' (+' + formatPrice(opt.surcharge) + '/st)';
+                            if (opt.surcharge > 0) label += ' (+' + formatPrice(opt.surcharge) + ' ' + priceTypeSuffix(opt.price_type) + ')';
                         } else if (opt.type === 'select' && sel.label) {
                             label = opt.label + ': ' + sel.label;
                         }
@@ -1345,7 +1350,7 @@
                     var sel = s.selectedSubOptions[i];
                     if (!sel) return;
                     if (opt.type === 'checkbox' && sel.checked) {
-                        subLabels.push(opt.label + (opt.surcharge > 0 ? ' (+' + formatPrice(opt.surcharge) + ')' : ''));
+                        subLabels.push(opt.label + (opt.surcharge > 0 ? ' (+' + formatPrice(opt.surcharge) + ' ' + priceTypeSuffix(opt.price_type) + ')' : ''));
                     } else if (opt.type === 'select' && sel.label) {
                         subLabels.push(opt.label + ': ' + sel.label);
                     }

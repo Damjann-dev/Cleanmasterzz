@@ -222,10 +222,12 @@ class CMCalc_Admin {
         // Sanitize each sub-option
         $clean = array();
         foreach ( $decoded as $opt ) {
+            $valid_price_types = array( 'per_keer', 'per_m2', 'per_uur', 'per_stuk' );
             $item = array(
-                'label'     => sanitize_text_field( $opt['label'] ?? '' ),
-                'type'      => in_array( $opt['type'] ?? '', array( 'checkbox', 'select' ) ) ? $opt['type'] : 'checkbox',
-                'surcharge' => floatval( $opt['surcharge'] ?? 0 ),
+                'label'      => sanitize_text_field( $opt['label'] ?? '' ),
+                'type'       => in_array( $opt['type'] ?? '', array( 'checkbox', 'select' ) ) ? $opt['type'] : 'checkbox',
+                'surcharge'  => floatval( $opt['surcharge'] ?? 0 ),
+                'price_type' => in_array( $opt['price_type'] ?? '', $valid_price_types ) ? $opt['price_type'] : 'per_keer',
             );
             if ( $item['type'] === 'select' && ! empty( $opt['options'] ) ) {
                 $item['options']    = array_map( 'sanitize_text_field', (array) $opt['options'] );
