@@ -211,10 +211,12 @@
                 '<div class="cmcalc-sub-field-group cmcalc-sub-field-price-type">' +
                     '<label>Per</label>' +
                     '<select class="cmcalc-sub-price-type">' +
-                        '<option value="per_keer"' + ((!opt.price_type || opt.price_type === 'per_keer') ? ' selected' : '') + '>per keer (eenmalig)</option>' +
-                        '<option value="per_m2"' + (opt.price_type === 'per_m2' ? ' selected' : '') + '>per m&sup2;</option>' +
-                        '<option value="per_uur"' + (opt.price_type === 'per_uur' ? ' selected' : '') + '>per uur</option>' +
-                        '<option value="per_stuk"' + (opt.price_type === 'per_stuk' ? ' selected' : '') + '>per stuk</option>' +
+                        '<option value="per_keer"'  + ((!opt.price_type || opt.price_type === 'per_keer')  ? ' selected' : '') + '>per keer (eenmalig)</option>' +
+                        '<option value="per_m2"'    + (opt.price_type === 'per_m2'    ? ' selected' : '') + '>per m&sup2;</option>' +
+                        '<option value="per_raam"'  + (opt.price_type === 'per_raam'  ? ' selected' : '') + '>per raam</option>' +
+                        '<option value="per_meter"' + (opt.price_type === 'per_meter' ? ' selected' : '') + '>per meter</option>' +
+                        '<option value="per_uur"'   + (opt.price_type === 'per_uur'   ? ' selected' : '') + '>per uur</option>' +
+                        '<option value="per_stuk"'  + (opt.price_type === 'per_stuk'  ? ' selected' : '') + '>per stuk</option>' +
                     '</select>' +
                 '</div>';
             }
@@ -223,10 +225,12 @@
                 html += '<div class="cmcalc-sub-field-group cmcalc-sub-field-price-type">' +
                     '<label>Per</label>' +
                     '<select class="cmcalc-sub-price-type">' +
-                        '<option value="per_keer"' + ((!opt.price_type || opt.price_type === 'per_keer') ? ' selected' : '') + '>per keer (eenmalig)</option>' +
-                        '<option value="per_m2"' + (opt.price_type === 'per_m2' ? ' selected' : '') + '>per m&sup2;</option>' +
-                        '<option value="per_uur"' + (opt.price_type === 'per_uur' ? ' selected' : '') + '>per uur</option>' +
-                        '<option value="per_stuk"' + (opt.price_type === 'per_stuk' ? ' selected' : '') + '>per stuk</option>' +
+                        '<option value="per_keer"'  + ((!opt.price_type || opt.price_type === 'per_keer')  ? ' selected' : '') + '>per keer (eenmalig)</option>' +
+                        '<option value="per_m2"'    + (opt.price_type === 'per_m2'    ? ' selected' : '') + '>per m&sup2;</option>' +
+                        '<option value="per_raam"'  + (opt.price_type === 'per_raam'  ? ' selected' : '') + '>per raam</option>' +
+                        '<option value="per_meter"' + (opt.price_type === 'per_meter' ? ' selected' : '') + '>per meter</option>' +
+                        '<option value="per_uur"'   + (opt.price_type === 'per_uur'   ? ' selected' : '') + '>per uur</option>' +
+                        '<option value="per_stuk"'  + (opt.price_type === 'per_stuk'  ? ' selected' : '') + '>per stuk</option>' +
                     '</select>' +
                 '</div>';
             }

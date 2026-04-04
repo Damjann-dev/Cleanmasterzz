@@ -101,7 +101,7 @@ $icon_opts   = ['window'=>'🪟 Ramen','terrace'=>'🌿 Terras','facade'=>'🏗�
 
 <script>
 var subOpts = <?= json_encode($service['sub_options']) ?>;
-var unitLabels = {per_keer:'per keer',per_m2:'per m²',per_uur:'per uur',per_stuk:'per stuk'};
+var unitLabels = {per_keer:'per keer (eenmalig)',per_m2:'per m²',per_raam:'per raam',per_meter:'per meter',per_uur:'per uur',per_stuk:'per stuk'};
 
 function renderSubOpts() {
     var el = document.getElementById('subOptList');

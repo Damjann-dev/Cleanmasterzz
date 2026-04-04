@@ -95,8 +95,8 @@
     }
 
     function priceTypeSuffix(price_type) {
-        var map = { per_keer: 'p/keer', per_m2: '/m\u00B2', per_uur: '/uur', per_stuk: '/st' };
-        return map[price_type] || '/st';
+        var map = { per_keer: 'p/keer', per_m2: '/m\u00B2', per_uur: '/uur', per_stuk: '/st', per_raam: '/raam', per_meter: '/m' };
+        return map[price_type] || 'p/keer';
     }
 
     /** Haversine distance in km */
@@ -181,12 +181,13 @@
             service.sub_options.forEach(function(opt, i) {
                 var sel = selectedSubOptions[i];
                 if (!sel) return;
+                var ptype = opt.price_type || 'per_keer';
                 if (opt.type === 'checkbox' && sel.checked && opt.surcharge > 0) {
-                    subtotal += opt.price_type === 'per_keer' ? opt.surcharge : opt.surcharge * quantity;
+                    subtotal += ptype === 'per_keer' ? opt.surcharge : opt.surcharge * quantity;
                 } else if (opt.type === 'select' && opt.surcharges && sel.value !== undefined) {
                     var idx = parseInt(sel.value, 10);
                     if (opt.surcharges && opt.surcharges[idx] > 0) {
-                        subtotal += opt.price_type === 'per_keer' ? opt.surcharges[idx] : opt.surcharges[idx] * quantity;
+                        subtotal += ptype === 'per_keer' ? opt.surcharges[idx] : opt.surcharges[idx] * quantity;
                     }
                 }
             });

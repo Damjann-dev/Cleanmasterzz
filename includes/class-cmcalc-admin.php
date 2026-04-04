@@ -222,7 +222,7 @@ class CMCalc_Admin {
         // Sanitize each sub-option
         $clean = array();
         foreach ( $decoded as $opt ) {
-            $valid_price_types = array( 'per_keer', 'per_m2', 'per_uur', 'per_stuk' );
+            $valid_price_types = array( 'per_keer', 'per_m2', 'per_raam', 'per_meter', 'per_uur', 'per_stuk' );
             $item = array(
                 'label'      => sanitize_text_field( $opt['label'] ?? '' ),
                 'type'       => in_array( $opt['type'] ?? '', array( 'checkbox', 'select' ) ) ? $opt['type'] : 'checkbox',
