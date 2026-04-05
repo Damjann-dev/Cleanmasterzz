@@ -178,6 +178,7 @@ class CMCalc_REST_API {
 
         $unit_labels = array(
             'm2'     => 'm²',
+            'meter'  => 'meter',
             'stuk'   => 'stuk(s)',
             'paneel' => 'paneel/panelen',
             'raam'   => 'ra(a)m(en)',
@@ -447,8 +448,8 @@ class CMCalc_REST_API {
         $total = $subtotal - $discount_amount;
 
         $unit_labels = array(
-            'm2' => 'm²', 'stuk' => 'stuk(s)', 'paneel' => 'paneel/panelen',
-            'raam' => 'ra(a)m(en)', 'vast' => 'vast bedrag',
+            'm2' => 'm²', 'meter' => 'meter', 'stuk' => 'stuk(s)',
+            'paneel' => 'paneel/panelen', 'raam' => 'ra(a)m(en)', 'vast' => 'vast bedrag',
         );
 
         return rest_ensure_response( array(
@@ -1230,7 +1231,7 @@ class CMCalc_REST_API {
     }
 
     private static function save_service_meta( $id, $data ) {
-        $valid_units = array( 'm2', 'stuk', 'paneel', 'raam', 'vast' );
+        $valid_units = array( 'm2', 'meter', 'stuk', 'paneel', 'raam', 'vast' );
         if ( isset( $data['active'] ) )        update_post_meta( $id, '_cm_active',          $data['active'] ? '1' : '0' );
         if ( isset( $data['icon'] ) )          update_post_meta( $id, '_cm_icon',             sanitize_text_field( $data['icon'] ) );
         if ( isset( $data['base_price'] ) )    update_post_meta( $id, '_cm_base_price',       floatval( $data['base_price'] ) );

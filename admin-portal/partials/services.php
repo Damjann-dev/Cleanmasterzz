@@ -5,7 +5,7 @@ $service = null;
 if ($editing) {
     foreach ($services as $s) { if ($s['id'] == $editing) { $service = $s; break; } }
 }
-$unit_labels = ['m2'=>'m²','stuk'=>'Stuk(s)','paneel'=>'Paneel/panelen','raam'=>'Ra(a)m(en)','vast'=>'Vast bedrag'];
+$unit_labels = ['m2'=>'m²','meter'=>'Meter','stuk'=>'Stuk(s)','paneel'=>'Paneel/panelen','raam'=>'Ra(a)m(en)','vast'=>'Vast bedrag'];
 $icon_opts   = ['window'=>'🪟 Ramen','terrace'=>'🌿 Terras','facade'=>'🏗️ Gevel','pressure'=>'💧 Hogedrukreiniger','solar'=>'☀️ Zonnepanelen','construction'=>'🏚️ Bouwreiniging','roof'=>'🏠 Dakgoot','clean'=>'🧹 Algemeen','car'=>'🚗 Auto','custom'=>'⭐ Overig'];
 ?>
 

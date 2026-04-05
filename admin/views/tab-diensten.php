@@ -5,6 +5,7 @@ $diensten = CMCalc_Admin::get_diensten();
 $bedrijven = CMCalc_Admin::get_bedrijven();
 $unit_options = array(
     'm2'     => 'Per m²',
+    'meter'  => 'Per meter',
     'stuk'   => 'Per stuk',
     'paneel' => 'Per paneel',
     'raam'   => 'Per raam',
