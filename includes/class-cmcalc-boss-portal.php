@@ -337,25 +337,8 @@ class CMCalc_Boss_Portal {
     // ─── Assets ───────────────────────────────────────────────────────────────
 
     public static function enqueue_assets() {
-        $post    = get_post();
-        $content = $post ? $post->post_content : '';
-
-        // Elementor slaat shortcodes op in _elementor_data, niet in post_content.
-        // Controleer ook de Elementor-data zodat CSS altijd in <head> staat.
-        if ( ! has_shortcode( $content, 'cmcalc_boss_portal' ) &&
-             ! has_shortcode( $content, 'cmcalc_boss_login' ) ) {
-            if ( $post ) {
-                $elementor_data = get_post_meta( $post->ID, '_elementor_data', true );
-                if ( ! $elementor_data ||
-                     ( strpos( $elementor_data, 'cmcalc_boss_portal' ) === false &&
-                       strpos( $elementor_data, 'cmcalc_boss_login' )  === false ) ) {
-                    return;
-                }
-            } else {
-                return;
-            }
-        }
-
+        // Altijd laden op de frontend — Elementor slaat shortcodes op in
+        // _elementor_data (niet in post_content), waardoor detectie onbetrouwbaar is.
         wp_enqueue_style( 'cmcalc-boss-portal',
             CMCALC_PLUGIN_URL . 'public/css/boss-portal.css',
             array(), CMCALC_VERSION
